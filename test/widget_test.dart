@@ -8,7 +8,7 @@ void main() {
     await tester.pumpWidget(const MirrorApp());
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 800));
-    expect(find.text('魔镜'), findsOneWidget);
+    expect(find.text('MirrorX'), findsOneWidget);
     expect(find.text('手机号登录'), findsOneWidget);
   });
 }

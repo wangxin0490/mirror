@@ -415,7 +415,7 @@ class _AuthLogoHeader extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '魔镜',
+            'MirrorX',
             style: MirrorTheme.sans(
               fontSize: 28,
               weight: FontWeight.w500,

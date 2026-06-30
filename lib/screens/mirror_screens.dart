@@ -110,7 +110,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 32),
                       Text(
-                        '魔镜',
+                        'MirrorX',
                         style: MirrorTheme.sans(
                           fontSize: 36,
                           weight: FontWeight.w500,

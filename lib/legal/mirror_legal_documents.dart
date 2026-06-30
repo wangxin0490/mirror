@@ -18,14 +18,14 @@ extension MirrorLegalDocumentMeta on MirrorLegalDocument {
       };
 }
 
-const _operatorName = '魔镜 MirrorX 运营团队';
+const _operatorName = 'MirrorX 运营团队';
 const _contactEmail = 'miaochenggong@heunion.com';
 
 const _userAgreementSections = [
   (
     heading: '一、导言',
     body:
-        '欢迎使用魔镜 MirrorX（以下简称「本应用」或「我们」）。本《用户协议》（以下简称「本协议」）由 $_operatorName 与您（以下简称「用户」）就您下载、安装、注册、登录及使用本应用相关服务所订立。'
+        '欢迎使用 MirrorX（以下简称「本应用」或「我们」）。本《用户协议》（以下简称「本协议」）由 $_operatorName 与您（以下简称「用户」）就您下载、安装、注册、登录及使用本应用相关服务所订立。'
         '请您在注册或使用前仔细阅读并充分理解本协议。您点击「手机号登录」、完成注册或实际使用本应用，即视为您已阅读并同意本协议全部内容。',
   ),
   (
@@ -91,7 +91,7 @@ const _privacyPolicySections = [
   (
     heading: '一、引言',
     body:
-        '$_operatorName（以下简称「我们」）运营魔镜 MirrorX（以下简称「本应用」）。我们深知个人信息对您的重要性，并将按照合法、正当、必要、诚信的原则处理您的个人信息。'
+        '$_operatorName（以下简称「我们」）运营 MirrorX（以下简称「本应用」）。我们深知个人信息对您的重要性，并将按照合法、正当、必要、诚信的原则处理您的个人信息。'
         '本《隐私政策》说明我们如何收集、使用、存储、共享和保护您的个人信息，以及您享有的权利。请您在使用本应用前仔细阅读。',
   ),
   (

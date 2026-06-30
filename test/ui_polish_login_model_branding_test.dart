@@ -8,11 +8,11 @@ import 'package:mirror_mobile/widgets/mirror_icon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('Welcome shows 魔镜 branding and slogan', (tester) async {
+  testWidgets('Welcome shows MirrorX branding and slogan', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: Scaffold(body: WelcomeScreen())),
     );
-    expect(find.text('魔镜'), findsOneWidget);
+    expect(find.text('MirrorX'), findsOneWidget);
     expect(find.text('Mirror'), findsOneWidget);
     expect(find.text('照见知识、映射能力'), findsOneWidget);
     expect(find.byType(MirrorIcon), findsWidgets);
@@ -38,7 +38,7 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(home: Scaffold(body: PhoneLoginScreen())),
     );
-    expect(find.text('魔镜'), findsOneWidget);
+    expect(find.text('MirrorX'), findsOneWidget);
     expect(find.byKey(const Key('login-phone-field')), findsOneWidget);
     expect(find.text('输入手机号'), findsOneWidget);
     expect(find.byKey(const Key('login-code-step')), findsNothing);

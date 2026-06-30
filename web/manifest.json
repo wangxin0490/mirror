@@ -1,6 +1,6 @@
 {
-    "name": "魔镜",
-    "short_name": "魔镜",
+    "name": "MirrorX",
+    "short_name": "MirrorX",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

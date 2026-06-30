@@ -10,7 +10,7 @@
 # IOS_DISTRIBUTION_CERTIFICATE_PASSWORD .p12 密码
 # IOS_PROVISIONING_PROFILE_BASE64       App Store 描述文件 .mobileprovision 的 base64
 # IOS_KEYCHAIN_PASSWORD                 临时钥匙串密码（任意强随机字符串）
-# IOS_DEVELOPMENT_TEAM                  Apple Team ID（10 位，如 ABCDE12345）
+# IOS_DEVELOPMENT_TEAM                  （可选）Apple Team ID；未配置时从描述文件读取，兜底 U8443M3MV7
 # APPSTORE_ISSUER_ID                    App Store Connect API Issuer ID
 # APPSTORE_KEY_ID                       API 密钥 Key ID
 # APPSTORE_PRIVATE_KEY                  API 密钥 .p8 全文（含 BEGIN/END 行）
@@ -46,6 +46,7 @@ jobs:
     env:
       BUNDLE_ID: com.mirror.mirrorMobile
       FLUTTER_VERSION: '3.44.1'
+      APPLE_TEAM_ID: U8443M3MV7
 
     steps:
       - name: Checkout
@@ -91,13 +92,18 @@ jobs:
           PP_XML="$(security cms -D -i "$PP_PATH")"
           PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print UUID' /dev/stdin <<< "$PP_XML")"
           PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin <<< "$PP_XML")"
+          TEAM_ID="$(/usr/libexec/PlistBuddy -c 'Print TeamIdentifier.0' /dev/stdin <<< "$PP_XML")"
+          if [ -z "$TEAM_ID" ]; then
+            TEAM_ID="${APPLE_TEAM_ID}"
+          fi
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$PROFILE_UUID.mobileprovision"
 
           echo "profile_name=$PROFILE_NAME" >> "$GITHUB_OUTPUT"
           echo "profile_uuid=$PROFILE_UUID" >> "$GITHUB_OUTPUT"
-          echo "Installed profile: $PROFILE_NAME ($PROFILE_UUID)"
+          echo "team_id=$TEAM_ID" >> "$GITHUB_OUTPUT"
+          echo "Installed profile: $PROFILE_NAME ($PROFILE_UUID), team: $TEAM_ID"
 
       - name: Apply provisioning profile UUID to Xcode project
         env:
@@ -111,10 +117,14 @@ jobs:
 
       - name: Create ExportOptions.plist
         env:
-          TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
+          TEAM_ID: ${{ steps.signing.outputs.team_id }}
           PROFILE_NAME: ${{ steps.signing.outputs.profile_name }}
         run: |
           set -euo pipefail
+          if [ -z "${TEAM_ID}" ]; then
+            echo "teamID is empty; set IOS_DEVELOPMENT_TEAM secret or fix provisioning profile" >&2
+            exit 1
+          fi
           cat > ios/ExportOptions.plist <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
