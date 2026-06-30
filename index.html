@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mirror Mobile — 原型设计 v0.3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Serif+SC:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" rel="stylesheet">
+<style>
+:root{
+  --bg-page:#F6F5F2;
+  --bg-app:#FFFFFF;
+  --bg-soft:#FAFAF8;
+  --bg-card:#F4F4F2;
+  --border:#E8E6E1;
+  --border-soft:#EFEDE8;
+  --text:#1A1916;
+  --text-2:#5C5A54;
+  --text-3:#9B988F;
+  --text-4:#C7C4BB;
+  --accent:#5B47E8;
+  --accent-soft:#EEEDFE;
+  --accent-deep:#3C3489;
+  --green:#1D9E75;
+  --green-soft:#E1F5EE;
+  --blue:#185FA5;
+  --blue-soft:#E6F1FB;
+  --amber:#BA7517;
+  --amber-soft:#FAEEDA;
+  --coral:#D85A30;
+  --coral-soft:#FAECE7;
+  --pink:#E84A85;
+  --pink-soft:#FCE7EE;
+  --sans:'Geist', -apple-system, 'PingFang SC', 'Noto Sans SC', sans-serif;
+  --mono:'Geist Mono', 'SF Mono', Menlo, monospace;
+  --serif:'Noto Serif SC', Georgia, serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-page);color:var(--text);font-family:var(--sans);font-weight:400;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em}
+body{min-height:100vh;padding:80px 24px 120px;
+  background-image:radial-gradient(ellipse 60% 40% at 10% 0%, rgba(91,71,232,.04), transparent 70%),radial-gradient(ellipse 50% 30% at 95% 20%, rgba(29,158,117,.03), transparent 70%)}
+
+/* ============ HEADER ============ */
+.page-header{max-width:1400px;margin:0 auto 96px;padding:0 8px}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:56px}
+.sigil{width:44px;height:44px;border-radius:12px;background:var(--text);display:grid;place-items:center;color:white}
+.sigil i{font-size:22px}
+.mirror-icon{display:block;flex-shrink:0;color:white}
+.sigil .mirror-icon{width:26px;height:26px}
+.brand-text h1{font-size:22px;font-weight:500;letter-spacing:-0.02em;line-height:1}
+.brand-text .tag{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:5px;letter-spacing:0;text-transform:uppercase}
+
+.intro{display:grid;grid-template-columns:1.4fr 1fr;gap:80px;align-items:end;border-top:1px solid var(--border);padding-top:56px}
+.intro h2{font-size:58px;font-weight:400;line-height:1.05;letter-spacing:-0.03em}
+.intro h2 .accent{color:var(--accent);font-weight:500}
+.intro h2 .light{color:var(--text-3)}
+.intro p{font-size:14px;line-height:1.75;color:var(--text-2);max-width:400px}
+.intro p+p{margin-top:14px}
+
+.meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin-top:72px;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.meta-cell{background:var(--bg-app);padding:22px 26px}
+.meta-cell .k{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.meta-cell .v{font-size:22px;color:var(--text);font-weight:500;letter-spacing:-0.02em}
+.meta-cell .v .hl{color:var(--accent)}
+
+/* ============ TIP BAR ============ */
+.tip-bar{max-width:1400px;margin:64px auto 32px;padding:14px 20px;background:var(--accent-soft);border:1px solid #D9D5FA;border-radius:12px;display:flex;align-items:center;gap:12px;color:var(--accent-deep);font-size:13px}
+.tip-bar i{font-size:18px;color:var(--accent)}
+.tip-bar .kbd{font-family:var(--mono);background:white;padding:2px 6px;border-radius:4px;font-size:11px;border:1px solid #D9D5FA;color:var(--accent)}
+
+/* ============ GALLERY ============ */
+.gallery{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:56px 32px;padding:0 8px}
+.screen-wrap{display:flex;flex-direction:column;align-items:center;gap:22px;scroll-margin-top:24px}
+.screen-label{text-align:center;max-width:300px}
+.screen-label .num{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.08em}
+.screen-label .name{font-size:18px;font-weight:500;margin-top:6px;letter-spacing:-0.01em}
+.screen-label .name .sep{color:var(--text-4);margin:0 6px;font-weight:400}
+.screen-label .name .accent{color:var(--accent)}
+.screen-label .desc{font-size:12px;color:var(--text-3);margin-top:8px;line-height:1.6}
+
+/* ============ PHONE FRAME ============ */
+.phone{width:340px;height:720px;background:#1f1d1a;border-radius:42px;padding:10px;
+  box-shadow:0 1px 2px rgba(0,0,0,.08),0 12px 24px -10px rgba(40,38,32,.15),0 24px 60px -20px rgba(40,38,32,.18);
+  position:relative;overflow:hidden}
+.phone-screen{width:100%;height:100%;background:var(--bg-app);border-radius:34px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.status-bar{height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:12px;font-weight:500;position:relative;z-index:5;color:var(--text)}
+.status-bar .right{display:flex;gap:5px;align-items:center;font-size:13px}
+.notch{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:84px;height:22px;background:#1f1d1a;border-radius:12px;z-index:10}
+
+/* shared */
+.app-bar{flex-shrink:0;padding:6px 18px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-soft)}
+.app-bar .title{font-size:17px;font-weight:500;letter-spacing:-0.015em}
+.app-bar .title .accent{color:var(--accent)}
+.app-bar .actions{display:flex;gap:14px;color:var(--text-2);font-size:18px;cursor:pointer}
+
+.tab-bar{flex-shrink:0;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--border-soft);padding:8px 6px 14px;background:var(--bg-app)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;color:var(--text-3);font-size:10px;letter-spacing:0;cursor:pointer;transition:color .2s}
+.tab i{font-size:19px;transition:transform .2s}
+.tab:hover{color:var(--text-2)}
+.tab:hover i{transform:translateY(-1px)}
+.tab.active{color:var(--accent)}
+
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px 18px 16px}
+
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text-2);background:var(--bg-soft)}
+.chip.accent{border-color:transparent;color:var(--accent-deep);background:var(--accent-soft)}
+.chip.blue{border-color:transparent;color:#0C447C;background:var(--blue-soft)}
+.chip.green{border-color:transparent;color:#085041;background:var(--green-soft)}
+.chip.coral{border-color:transparent;color:#993C1D;background:var(--coral-soft)}
+.chip.pink{border-color:transparent;color:#8C2950;background:var(--pink-soft)}
+
+/* ============ S1: WELCOME ============ */
+.s1{justify-content:space-between;padding:0;display:flex;flex-direction:column;flex:1}
+.s1-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px;text-align:center;position:relative}
+.s1-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 30%, rgba(91,71,232,.08), transparent 60%);pointer-events:none}
+.s1 .big-sigil{width:88px;height:88px;border-radius:24px;background:var(--text);color:white;display:grid;place-items:center;margin-bottom:32px;position:relative}
+.s1 .big-sigil i{font-size:42px}
+.s1 .big-sigil .mirror-icon{width:48px;height:48px}
+.s1 .big-sigil::after{content:'';position:absolute;inset:-8px;border:1px solid var(--border);border-radius:30px}
+.s1 h1{font-size:36px;font-weight:500;line-height:1;margin-bottom:14px;letter-spacing:-0.025em;position:relative}
+.s1 h1 .accent{color:var(--accent)}
+.s1 .sub{font-size:13px;color:var(--text-2);line-height:1.6;max-width:240px;position:relative}
+.s1 .sub .quote{font-family:var(--serif);font-style:italic;color:var(--text);font-size:14px;display:block;margin-bottom:6px}
+.s1-actions{padding:24px 28px 36px;display:flex;flex-direction:column;gap:10px}
+.btn-primary{background:var(--text);color:white;border:none;padding:14px;border-radius:12px;font-family:var(--sans);font-weight:500;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.btn-primary i{font-size:16px}
+.btn-ghost{background:transparent;color:var(--text-2);border:1px solid var(--border);padding:13px;border-radius:12px;font-family:var(--sans);font-weight:400;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.s1 .footer{text-align:center;font-family:var(--mono);font-size:10px;color:var(--text-4);margin-top:14px;letter-spacing:.04em}
+
+/* ============ S2: CHAT ============ */
+.chat-head{padding:6px 16px 12px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.chat-head .back{color:var(--text-2);font-size:22px;cursor:pointer}
+.chat-head .info{flex:1;min-width:0}
+.chat-head .info .agent{font-size:14px;font-weight:500;line-height:1.2;letter-spacing:-0.01em}
+.chat-head .info .agent .accent{color:var(--accent);font-weight:500;margin-left:3px}
+.chat-head .info .status{font-size:10px;color:var(--green);margin-top:2px;display:flex;align-items:center;gap:5px;font-family:var(--mono)}
+.chat-head .info .status::before{content:'';width:5px;height:5px;background:var(--green);border-radius:50%}
+.chat-head .model-pill{padding:5px 9px;border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--text-2);display:flex;align-items:center;gap:5px;background:var(--bg-soft)}
+.chat-head .model-pill .d{width:5px;height:5px;background:var(--accent);border-radius:50%}
+.chat-flow{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:12px}
+.msg{display:flex;flex-direction:column;gap:6px;max-width:88%}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.msg.user .bubble{background:var(--bg-card);border:1px solid var(--border-soft);padding:10px 13px;border-radius:14px 14px 4px 14px;font-size:13px;line-height:1.55;color:var(--text)}
+.msg.ai{align-self:flex-start;max-width:92%}
+.msg.ai .head{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-3);margin-bottom:2px;font-family:var(--mono)}
+.msg.ai .head .d{width:5px;height:5px;background:var(--accent);border-radius:50%}
+.msg.ai .bubble{font-size:13px;line-height:1.65;color:var(--text)}
+.tool-card{border:1px solid var(--border);border-radius:10px;background:var(--bg-soft);padding:8px 10px;margin:8px 0;font-family:var(--mono);font-size:11px}
+.tool-card .row{display:flex;align-items:center;gap:8px;color:var(--text-2);padding:3px 0}
+.tool-card .row+.row{border-top:1px solid var(--border-soft);padding-top:6px;margin-top:3px}
+.tool-card .ic{width:14px;height:14px;flex-shrink:0;display:grid;place-items:center;font-size:13px;color:var(--blue)}
+.tool-card .ic.ok{color:var(--green)}
+.tool-card .ic.accent{color:var(--accent)}
+.tool-card code{color:var(--text);background:transparent}
+.tool-card .ms{margin-left:auto;color:var(--text-4);font-size:10px}
+.bullet{display:inline-block;width:18px;height:18px;background:var(--accent-soft);color:var(--accent-deep);border-radius:5px;text-align:center;line-height:18px;font-size:11px;font-weight:500;margin-right:6px;font-family:var(--mono)}
+.chat-input{flex-shrink:0;padding:10px 14px 12px;border-top:1px solid var(--border-soft);display:flex;align-items:center;gap:8px}
+.input-box{flex:1;background:var(--bg-soft);border:1px solid var(--border);border-radius:22px;padding:9px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-3)}
+.input-box .slash{font-family:var(--mono);color:var(--accent);font-size:13px;font-weight:500}
+.input-box i{font-size:16px;color:var(--text-3)}
+.send-btn{width:36px;height:36px;background:var(--text);border-radius:50%;display:grid;place-items:center;flex-shrink:0;color:white;font-size:16px;cursor:pointer}
+
+/* ============ S3: SESSIONS ============ */
+.search-bar{margin:6px 0 14px;padding:10px 13px;background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;gap:10px;color:var(--text-3);font-size:12px}
+.search-bar i{font-size:15px}
+.search-bar .kbd{margin-left:auto;font-family:var(--mono);font-size:10px;border:1px solid var(--border);padding:1px 5px;border-radius:4px;color:var(--text-3);background:white}
+.section-label{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--text-3);text-transform:uppercase;margin:18px 0 10px;display:flex;align-items:center;gap:8px}
+.section-label .line{flex:1;height:1px;background:var(--border)}
+.section-label:first-of-type{margin-top:4px}
+.session-item{padding:13px 0;border-bottom:1px solid var(--border-soft);display:flex;gap:12px;cursor:pointer}
+.session-item:last-child{border-bottom:none}
+.session-item .dot{width:6px;height:6px;border-radius:50%;background:var(--text-4);margin-top:7px;flex-shrink:0}
+.session-item .dot.active{background:var(--accent)}
+.session-item .body{flex:1;min-width:0}
+.session-item .t{font-size:13px;color:var(--text);font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.005em}
+.session-item .p{font-size:11.5px;color:var(--text-3);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.session-item .meta{display:flex;gap:8px;margin-top:6px;font-family:var(--mono);font-size:10px;color:var(--text-3)}
+.session-item .meta .tag{color:var(--accent)}
+
+/* ============ S4: FEED (生态圈) ============ */
+.feed-head{padding:8px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border-soft);flex-shrink:0}
+.feed-head .tabs-pill{display:flex;gap:14px;flex:1}
+.feed-head .tabs-pill .p{font-size:14px;color:var(--text-3);font-weight:500;cursor:pointer;padding:4px 0;position:relative;letter-spacing:-0.005em}
+.feed-head .tabs-pill .p.on{color:var(--text)}
+.feed-head .tabs-pill .p.on::after{content:'';position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);width:18px;height:3px;background:var(--accent);border-radius:2px}
+.feed-head .action{color:var(--text-2);font-size:18px;cursor:pointer}
+
+.feed-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 8px;align-items:start}
+.feed-card{background:var(--bg-app);border-radius:12px;overflow:hidden;border:1px solid var(--border-soft);cursor:pointer;transition:transform .2s}
+.feed-card:hover{transform:translateY(-1px)}
+.feed-card .cover{position:relative;width:100%;display:flex;align-items:center;justify-content:center;color:white;padding:14px;text-align:center}
+.feed-card .cover.h1{height:140px;background:linear-gradient(135deg,#5B47E8 0%,#8B6FFF 100%)}
+.feed-card .cover.h2{height:170px;background:linear-gradient(135deg,#E84A85 0%,#FF9CC4 100%)}
+.feed-card .cover.h3{height:120px;background:linear-gradient(135deg,#1D9E75 0%,#56C9A0 100%)}
+.feed-card .cover.h4{height:160px;background:linear-gradient(135deg,#BA7517 0%,#E8AC55 100%)}
+.feed-card .cover.h5{height:130px;background:linear-gradient(135deg,#185FA5 0%,#56A8E8 100%)}
+.feed-card .cover.h6{height:150px;background:linear-gradient(135deg,#1A1916 0%,#5C5A54 100%)}
+.feed-card .cover.h7{height:135px;background:linear-gradient(135deg,#D85A30 0%,#FF9468 100%)}
+.feed-card .cover.h8{height:155px;background:linear-gradient(135deg,#3C3489 0%,#7C6FE8 100%)}
+.feed-card .cover .label{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.3);backdrop-filter:blur(8px);font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:4px;letter-spacing:.04em}
+.feed-card .cover .cv-text{font-family:var(--serif);font-size:14px;font-weight:500;line-height:1.4;font-style:italic;letter-spacing:-0.01em}
+.feed-card .cover.has-icon i{font-size:38px;opacity:.85}
+.feed-card .meta{padding:8px 10px 10px}
+.feed-card .meta .ttl{font-size:12.5px;font-weight:500;line-height:1.4;color:var(--text);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.feed-card .meta .author{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text-3)}
+.feed-card .meta .av{width:18px;height:18px;border-radius:50%;background:var(--accent);color:white;display:grid;place-items:center;font-size:9px;font-weight:500;flex-shrink:0}
+.feed-card .meta .av.g{background:var(--green)}
+.feed-card .meta .av.p{background:var(--pink)}
+.feed-card .meta .av.b{background:var(--blue)}
+.feed-card .meta .av.a{background:var(--amber)}
+.feed-card .meta .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed-card .meta .likes{display:flex;align-items:center;gap:2px;color:var(--text-3);font-family:var(--mono);font-size:10px}
+.feed-card .meta .likes i{font-size:11px}
+.feed-card .meta .likes.on{color:var(--pink)}
+.fab{position:absolute;bottom:84px;right:14px;width:48px;height:48px;border-radius:50%;background:var(--accent);color:white;display:grid;place-items:center;box-shadow:0 4px 12px rgba(91,71,232,.4);cursor:pointer;z-index:5}
+.fab i{font-size:22px}
+
+/* ============ S5: POST DETAIL ============ */
+.post-head{padding:6px 14px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border-soft);flex-shrink:0}
+.post-head .back{font-size:22px;color:var(--text-2);cursor:pointer}
+.post-head .author-mini{display:flex;align-items:center;gap:8px;flex:1}
+.post-head .author-mini .av{width:30px;height:30px;border-radius:50%;background:var(--accent);color:white;display:grid;place-items:center;font-size:13px;font-weight:500}
+.post-head .author-mini .nm{font-size:13px;font-weight:500}
+.post-head .author-mini .sub{font-size:10px;color:var(--text-3);margin-top:1px;font-family:var(--mono)}
+.post-head .follow{padding:5px 12px;background:var(--accent);color:white;border-radius:14px;font-size:11px;font-weight:500;cursor:pointer}
+.post-cover{width:100%;height:200px;background:linear-gradient(135deg,#5B47E8 0%,#3C3489 100%);display:flex;align-items:center;justify-content:center;color:white;padding:20px;text-align:center;position:relative;flex-shrink:0}
+.post-cover .quote{font-family:var(--serif);font-style:italic;font-size:18px;line-height:1.4;font-weight:500}
+.post-cover .idx{position:absolute;bottom:10px;right:14px;font-family:var(--mono);font-size:10px;opacity:.6}
+.post-body{flex:1;overflow-y:auto;padding:14px 18px 16px}
+.post-body h3{font-size:17px;font-weight:500;letter-spacing:-0.015em;margin-bottom:8px;line-height:1.3}
+.post-body .ts{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-bottom:12px}
+.post-body p{font-size:13px;line-height:1.7;color:var(--text);margin-bottom:10px}
+.post-body .quote-box{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 12px;border-radius:0 8px 8px 0;font-size:12.5px;font-style:italic;color:var(--accent-deep);margin:12px 0;font-family:var(--serif);line-height:1.6}
+.post-body .code-snip{background:var(--bg-card);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:11px;color:var(--text);margin:10px 0;line-height:1.6}
+.post-body .code-snip .k{color:var(--accent)}
+.post-tags{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 10px}
+.post-actions-bar{flex-shrink:0;padding:10px 18px 14px;border-top:1px solid var(--border-soft);display:flex;align-items:center;gap:14px;background:var(--bg-app)}
+.post-actions-bar .reply{flex:1;background:var(--bg-soft);border:1px solid var(--border);border-radius:18px;padding:8px 14px;font-size:12px;color:var(--text-3)}
+.post-actions-bar .act{display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--text-2);cursor:pointer;font-size:9.5px;font-family:var(--mono)}
+.post-actions-bar .act i{font-size:19px}
+.post-actions-bar .act.on{color:var(--pink)}
+.post-actions-bar .act.on i{font-variation-settings:'FILL' 1}
+
+/* ============ S6: CONTACTS ============ */
+.contact-search{padding:8px 16px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border-soft);flex-shrink:0}
+.contact-search .sb{flex:1;background:var(--bg-soft);border:1px solid var(--border);border-radius:18px;padding:7px 12px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-3)}
+.contact-search .sb i{font-size:14px}
+.contact-search .add{width:34px;height:34px;border-radius:50%;background:var(--bg-soft);border:1px solid var(--border);display:grid;place-items:center;color:var(--accent);font-size:18px;cursor:pointer}
+
+.contact-tabs{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border-soft);overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.contact-tabs::-webkit-scrollbar{display:none}
+.contact-tabs .ct{padding:6px 14px;border:1px solid var(--border);border-radius:16px;font-size:12px;color:var(--text-2);background:var(--bg-app);white-space:nowrap;cursor:pointer;font-weight:500}
+.contact-tabs .ct.on{background:var(--text);color:white;border-color:var(--text)}
+.contact-tabs .ct .badge{font-family:var(--mono);font-size:9.5px;margin-left:4px;opacity:.7}
+
+.user-card{padding:14px 16px;border-bottom:1px solid var(--border-soft);display:flex;gap:12px;align-items:center}
+.user-card .av-lg{width:44px;height:44px;border-radius:50%;color:white;display:grid;place-items:center;font-size:16px;font-weight:500;flex-shrink:0;letter-spacing:-0.02em}
+.user-card .av-lg.a1{background:linear-gradient(135deg,#5B47E8,#8B6FFF)}
+.user-card .av-lg.a2{background:linear-gradient(135deg,#E84A85,#FF9CC4)}
+.user-card .av-lg.a3{background:linear-gradient(135deg,#1D9E75,#56C9A0)}
+.user-card .av-lg.a4{background:linear-gradient(135deg,#BA7517,#E8AC55)}
+.user-card .av-lg.a5{background:linear-gradient(135deg,#185FA5,#56A8E8)}
+.user-card .av-lg.a6{background:linear-gradient(135deg,#1A1916,#5C5A54)}
+.user-card .body{flex:1;min-width:0}
+.user-card .nm-line{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.user-card .nm{font-size:14px;font-weight:500;letter-spacing:-0.005em}
+.user-card .role{display:none}
+.user-card .bio{font-size:12px;color:var(--text-3);line-height:1.45;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.user-card .common{display:none}
+.user-card .btn-follow{padding:6px 14px;border-radius:14px;font-size:11.5px;font-weight:500;cursor:pointer;flex-shrink:0;align-self:center;letter-spacing:-0.005em}
+.user-card .btn-follow.un{background:var(--text);color:white}
+.user-card .btn-follow.ed{background:var(--bg-soft);color:var(--text-2);border:1px solid var(--border)}
+
+/* ============ S7: DRIVE ============ */
+.drive-head-bg{padding:14px 18px;background:linear-gradient(135deg,#5B47E8 0%,#3C3489 100%);color:white;flex-shrink:0;position:relative;overflow:hidden}
+.drive-head-bg::before{content:'';position:absolute;top:-30px;right:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06)}
+.drive-head-bg .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;position:relative}
+.drive-head-bg .hd .ttl{font-size:16px;font-weight:500;letter-spacing:-0.01em}
+.drive-head-bg .hd .ttl .accent{opacity:.7;margin-left:2px;font-weight:400;font-size:12px}
+.drive-head-bg .hd .icons{display:flex;gap:14px;font-size:18px;opacity:.85}
+.drive-storage{position:relative}
+.drive-storage .stat{display:flex;align-items:baseline;gap:6px}
+.drive-storage .big{font-size:24px;font-weight:500;letter-spacing:-0.02em}
+.drive-storage .total{font-size:12px;opacity:.65;font-family:var(--mono)}
+.drive-storage .sub{font-size:11px;opacity:.8;margin-top:3px}
+.drive-storage .sub .pro{color:#FFD27A;font-weight:500}
+.drive-storage .bar{height:5px;background:rgba(255,255,255,.18);border-radius:3px;margin-top:10px;overflow:hidden;display:flex}
+.drive-storage .bar .b1{height:100%;width:24%;background:white}
+.drive-storage .bar .b2{height:100%;width:18%;background:rgba(255,255,255,.7)}
+.drive-storage .bar .b3{height:100%;width:14%;background:rgba(255,255,255,.5)}
+.drive-storage .bar .b4{height:100%;width:8%;background:rgba(255,255,255,.3)}
+.drive-storage .legend{display:flex;gap:12px;margin-top:8px;font-family:var(--mono);font-size:9.5px;opacity:.85}
+.drive-storage .legend span{display:flex;align-items:center;gap:4px}
+.drive-storage .legend i{width:6px;height:6px;border-radius:50%;display:inline-block}
+
+.drive-cats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 14px 6px}
+.drive-cat{padding:10px 6px;border-radius:10px;background:var(--bg-soft);text-align:center;cursor:pointer;border:1px solid var(--border-soft);transition:all .2s}
+.drive-cat:hover{background:var(--accent-soft);border-color:#D9D5FA}
+.drive-cat .ic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;margin:0 auto 6px;font-size:18px}
+.drive-cat .ic.i1{background:var(--pink-soft);color:var(--pink)}
+.drive-cat .ic.i2{background:var(--blue-soft);color:var(--blue)}
+.drive-cat .ic.i3{background:var(--green-soft);color:var(--green)}
+.drive-cat .ic.i4{background:var(--amber-soft);color:var(--amber)}
+.drive-cat .nm{font-size:11px;color:var(--text-2);font-weight:500}
+.drive-cat .ct{font-size:9.5px;color:var(--text-3);font-family:var(--mono);margin-top:1px}
+
+.drive-recent{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 12px}
+.drive-file{background:var(--bg-app);border:1px solid var(--border-soft);border-radius:10px;overflow:hidden;cursor:pointer}
+.drive-file .preview{aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:white;font-size:24px;position:relative}
+.drive-file .preview.p1{background:linear-gradient(135deg,#5B47E8,#8B6FFF)}
+.drive-file .preview.p2{background:linear-gradient(135deg,#E84A85,#FF9CC4)}
+.drive-file .preview.p3{background:linear-gradient(135deg,#1D9E75,#56C9A0)}
+.drive-file .preview.p4{background:linear-gradient(135deg,#BA7517,#E8AC55)}
+.drive-file .preview .ext{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.3);backdrop-filter:blur(4px);font-family:var(--mono);font-size:8.5px;padding:2px 5px;border-radius:3px}
+.drive-file .info{padding:6px 8px}
+.drive-file .info .nm{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drive-file .info .sz{font-family:var(--mono);font-size:9.5px;color:var(--text-3);margin-top:1px}
+
+.drive-list-section{padding:0 14px 12px}
+.drive-list-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-soft)}
+.drive-list-item:last-child{border-bottom:none}
+.drive-list-item .fi{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:16px;flex-shrink:0}
+.drive-list-item .fi.f1{background:var(--accent-soft);color:var(--accent-deep)}
+.drive-list-item .fi.f2{background:var(--blue-soft);color:var(--blue)}
+.drive-list-item .fi.f3{background:var(--coral-soft);color:var(--coral)}
+.drive-list-item .body{flex:1;min-width:0}
+.drive-list-item .nm{font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drive-list-item .sub{font-size:10px;color:var(--text-3);margin-top:2px;font-family:var(--mono)}
+.drive-list-item .more{color:var(--text-3);font-size:18px;cursor:pointer}
+
+/* ============ S8: SKILLS ============ */
+.tab-switch{display:flex;background:var(--bg-card);border-radius:10px;padding:3px;margin-bottom:16px}
+.tab-switch .t{flex:1;text-align:center;padding:7px 0;font-size:12px;color:var(--text-3);border-radius:7px;font-weight:500;cursor:pointer;transition:all .2s}
+.tab-switch .t.on{background:white;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.04)}
+
+.skill-card{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--bg-app)}
+.skill-card .top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:10px}
+.skill-card .slug{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:500}
+.skill-card .slug::before{content:'/';color:var(--text-3);margin-right:1px}
+.skill-card .toggle{width:32px;height:18px;background:var(--accent);border-radius:10px;position:relative;flex-shrink:0;cursor:pointer;transition:background .2s}
+.skill-card .toggle::after{content:'';position:absolute;top:2px;right:2px;width:14px;height:14px;background:white;border-radius:50%;transition:all .2s}
+.skill-card .toggle.off{background:var(--border)}
+.skill-card .toggle.off::after{left:2px;right:auto}
+.skill-card .desc{font-size:12px;color:var(--text-2);line-height:1.55;margin-bottom:10px}
+.skill-card .foot{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.skill-card .auto{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.02em;margin-left:2px}
+.skill-card .uses{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--text-3)}
+
+/* ============ S9: SOUL ============ */
+.soul-hero{border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:18px;text-align:center;background:var(--bg-soft);position:relative}
+.soul-hero .sigil-mini{width:44px;height:44px;border-radius:12px;background:var(--accent);color:white;display:grid;place-items:center;margin:0 auto 12px}
+.soul-hero .sigil-mini i{font-size:20px}
+.soul-hero h3{font-size:18px;font-weight:500;letter-spacing:-0.01em;margin-bottom:6px}
+.soul-hero .quote{font-family:var(--serif);font-style:italic;color:var(--text-2);font-size:13px;line-height:1.5}
+.soul-hero .quote .accent{color:var(--accent)}
+.field{margin-bottom:14px}
+.field .label{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.field .label .req{color:var(--accent);font-size:8px}
+.field .input{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--text);line-height:1.55}
+.field .chips-input{display:flex;flex-wrap:wrap;gap:6px;background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:8px 10px}
+.field .chip-x{background:var(--accent-soft);color:var(--accent-deep);padding:4px 8px;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:6px}
+.field .chip-x .x{color:var(--accent);cursor:pointer;font-size:11px}
+.field .chip-add{padding:4px 8px;color:var(--text-3);font-size:11px;border:1px dashed var(--border);border-radius:6px;background:white;cursor:pointer}
+.adv-toggle{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border:1px solid var(--border);border-radius:10px;margin-top:6px;font-size:12px;color:var(--text-2);background:var(--bg-soft)}
+.adv-toggle .mode{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.04em}
+
+/* ============ S10: MEMORY ============ */
+.mem-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.mem-stat{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--bg-app)}
+.mem-stat .k{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.04em;text-transform:uppercase}
+.mem-stat .v{font-size:20px;color:var(--text);line-height:1.1;margin-top:4px;font-weight:500;letter-spacing:-0.02em}
+.mem-stat .v em{font-style:normal;color:var(--text-3);font-size:13px;margin-left:3px;font-weight:400}
+.mem-stat .bar{height:3px;background:var(--bg-card);border-radius:2px;margin-top:8px;overflow:hidden}
+.mem-stat .bar .fill{height:100%;background:var(--accent);border-radius:2px}
+.mem-card{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;background:var(--bg-app)}
+.mem-card.pinned{border-color:var(--accent);background:var(--accent-soft)}
+.mem-card.pinned .txt{color:var(--accent-deep)}
+.mem-card .h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.mem-card .pin{color:var(--accent);font-size:13px;line-height:1}
+.mem-card .ts{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.02em;margin-left:auto}
+.mem-card .tag{font-family:var(--mono);font-size:9px;color:#0C447C;background:var(--blue-soft);padding:1px 6px;border-radius:4px;text-transform:uppercase}
+.mem-card.pinned .tag{background:white}
+.mem-card .txt{font-size:12.5px;color:var(--text);line-height:1.6}
+.mem-card .src{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:8px}
+
+/* ============ S11: ROUTING ============ */
+.routing-graph{border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px;background:var(--bg-soft);position:relative;height:260px}
+.node{position:absolute;background:white;border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:6px}
+.node.task{border-color:var(--blue-soft);background:var(--blue-soft);color:#0C447C}
+.node.task .ic{width:5px;height:5px;background:var(--blue);border-radius:50%}
+.node.model{border-color:var(--accent-soft);background:var(--accent-soft);color:var(--accent-deep)}
+.node.model .ic{width:5px;height:5px;background:var(--accent);border-radius:50%}
+.node.model .ic.green{background:var(--green)}
+.node.model .name{font-family:var(--mono);font-size:10.5px;font-weight:500}
+.model-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--bg-app)}
+.model-row .icon{width:30px;height:30px;border-radius:8px;background:var(--accent-soft);display:grid;place-items:center;flex-shrink:0;font-size:13px;color:var(--accent-deep);font-weight:500}
+.model-row .nm{font-size:12.5px;color:var(--text);flex:1;font-weight:500;letter-spacing:-0.005em}
+.model-row .nm .p{color:var(--text-3);font-size:10.5px;margin-top:2px;font-weight:400;font-family:var(--mono)}
+.model-row .stat{font-family:var(--mono);font-size:10px;color:var(--text-3);text-align:right}
+.model-row .stat .ok{color:var(--green);font-weight:500;margin-top:2px}
+
+/* ============ S12: CRON ============ */
+.task-card{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;background:var(--bg-app)}
+.task-card .h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.task-card .ic{width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent-deep);display:grid;place-items:center;flex-shrink:0;font-size:16px}
+.task-card .nm{flex:1;font-size:13px;font-weight:500;letter-spacing:-0.005em}
+.task-card .state{font-family:var(--mono);font-size:10px;letter-spacing:.02em;padding:2px 6px;border-radius:4px}
+.task-card .state.on{color:#085041;background:var(--green-soft)}
+.task-card .state.off{color:var(--text-3);background:var(--bg-card)}
+.task-card .when{font-family:var(--mono);font-size:11px;color:var(--text-2);margin-left:38px;margin-bottom:6px}
+.task-card .when .cron{color:var(--accent);font-weight:500}
+.task-card .next{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-left:38px}
+.task-card .next em{color:var(--text);font-style:normal;font-weight:500}
+.add-task{border:1px dashed var(--border);border-radius:12px;padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--text-2);background:var(--bg-soft)}
+.add-task .plus{width:26px;height:26px;border-radius:8px;background:var(--accent);color:white;display:grid;place-items:center;font-size:16px;line-height:1;flex-shrink:0}
+.add-task .hint{color:var(--text-3);font-size:11.5px;margin-top:2px;line-height:1.4}
+
+/* ============ S13: ME ============ */
+.me-profile{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--bg-app);margin-bottom:14px}
+.me-profile .av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#5B47E8,#8B6FFF);color:white;display:grid;place-items:center;font-size:18px;font-weight:500}
+
+/* ============ S3-NEW: 统一通讯 (简化版) ============ */
+.mirror-hero{padding:18px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;background:linear-gradient(180deg, rgba(91,71,232,.05) 0%, transparent 100%);position:relative}
+.mirror-hero:hover{background:linear-gradient(180deg, rgba(91,71,232,.08) 0%, transparent 100%)}
+.mirror-hero .hh-av{width:48px;height:48px;border-radius:14px;background:var(--text);color:white;display:grid;place-items:center;flex-shrink:0;position:relative}
+.mirror-hero .hh-av .mirror-icon{width:22px;height:22px}
+.fav-c .av-fc.mirror .mirror-icon{width:18px;height:18px}
+.mirror-hero .hh-av::after{content:'';position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;background:var(--accent);border:2px solid var(--bg-app);border-radius:50%}
+.mirror-hero .hh-body{flex:1;min-width:0}
+.mirror-hero .hh-nm{font-size:15px;font-weight:500;letter-spacing:-0.01em;color:var(--text);margin-bottom:3px}
+.mirror-hero .hh-line{font-size:12px;color:var(--text-3);line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mirror-hero .hh-time{font-family:var(--mono);font-size:10px;color:var(--text-3);flex-shrink:0;align-self:flex-start;margin-top:3px}
+
+.thread-divider{height:8px;background:var(--bg-page);border-top:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft)}
+
+.thread{padding:14px 16px;display:flex;gap:14px;align-items:center;cursor:pointer;position:relative;background:var(--bg-app);transition:background .15s}
+.thread:hover{background:var(--bg-soft)}
+.thread+.thread::before{content:'';position:absolute;top:0;left:74px;right:16px;height:1px;background:var(--border-soft)}
+.thread .av-th{width:44px;height:44px;color:white;display:grid;place-items:center;font-size:16px;font-weight:500;flex-shrink:0;letter-spacing:-0.02em;border-radius:50%}
+.thread .av-th.lin{background:linear-gradient(135deg,#E84A85,#FF9CC4)}
+.thread .av-th.chen{background:linear-gradient(135deg,#5B47E8,#8B6FFF)}
+.thread .av-th.shen{background:linear-gradient(135deg,#BA7517,#E8AC55)}
+.thread .av-th.zhou{background:linear-gradient(135deg,#1D9E75,#56C9A0)}
+.thread .av-th.group{background:linear-gradient(135deg,#185FA5,#56A8E8);border-radius:13px}
+.thread .av-th.bot{background:linear-gradient(135deg,#3C3489,#7C6FE8);border-radius:13px}
+.thread .body{flex:1;min-width:0}
+.thread .top-row{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.thread .nm{font-size:14px;font-weight:500;color:var(--text);letter-spacing:-0.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;display:flex;align-items:center;gap:6px}
+.thread .bot-tag{font-family:var(--mono);font-size:9px;color:var(--coral);background:var(--coral-soft);padding:1px 5px;border-radius:3px;letter-spacing:.04em;font-weight:500;text-transform:uppercase}
+.thread .time{font-family:var(--mono);font-size:10px;color:var(--text-3);flex-shrink:0}
+.thread .preview{font-size:12px;color:var(--text-3);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thread .preview .at{color:var(--accent);font-weight:500}
+.thread .unread-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;flex-shrink:0;margin-left:4px}
+
+/* ============ NEW: HUMAN CHAT (简化版) ============ */
+.h-chat-head{padding:8px 14px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border-soft);flex-shrink:0;background:var(--bg-app)}
+.h-chat-head .back{font-size:22px;color:var(--text-2);cursor:pointer}
+.h-chat-head .av-h{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#E84A85,#FF9CC4);color:white;display:grid;place-items:center;font-size:13px;font-weight:500;flex-shrink:0;letter-spacing:-0.02em}
+.h-chat-head .info{flex:1;min-width:0}
+.h-chat-head .info .nm{font-size:14px;font-weight:500;letter-spacing:-0.01em}
+.h-chat-head .info .sub{font-size:10.5px;color:var(--green);margin-top:1px;font-family:var(--mono);display:flex;align-items:center;gap:5px}
+.h-chat-head .info .sub::before{content:'';width:5px;height:5px;background:var(--green);border-radius:50%}
+.h-chat-head .menu-i{font-size:18px;color:var(--text-2);cursor:pointer}
+
+.h-chat-flow{flex:1;overflow-y:auto;padding:18px 14px 12px;display:flex;flex-direction:column;gap:10px;background:var(--bg-app)}
+.h-chat-flow .day-sep{align-self:center;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.06em;text-transform:uppercase;margin:4px 0 8px}
+.h-msg{max-width:78%}
+.h-msg.them{align-self:flex-start}
+.h-msg.them .bub{background:var(--bg-soft);padding:9px 13px;border-radius:4px 16px 16px 16px;font-size:13px;line-height:1.55;color:var(--text)}
+.h-msg.me{align-self:flex-end}
+.h-msg.me .bub{background:var(--text);color:white;padding:9px 13px;border-radius:16px 16px 4px 16px;font-size:13px;line-height:1.55}
+
+.share-card{align-self:flex-start;max-width:78%;background:var(--bg-app);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .15s}
+.share-card:hover{transform:translateY(-1px)}
+.share-card .sc-cover{height:88px;padding:14px;display:flex;flex-direction:column;justify-content:center;align-items:center;color:white;text-align:center}
+.share-card .sc-cover.soul{background:linear-gradient(135deg,#E84A85 0%, #FF9CC4 100%)}
+.share-card .sc-cover.bot{background:linear-gradient(135deg,#3C3489 0%, #7C6FE8 100%)}
+.share-card .sc-cover .sc-quote{font-family:var(--serif);font-style:italic;font-size:14px;line-height:1.3;font-weight:500;letter-spacing:-0.005em}
+.share-card .sc-body{padding:12px 14px 14px}
+.share-card .sc-ttl{font-size:13px;font-weight:500;line-height:1.4;color:var(--text);margin-bottom:8px;letter-spacing:-0.005em}
+.share-card .sc-foot{display:flex;align-items:center;justify-content:space-between}
+.share-card .sc-price{font-family:var(--mono);font-size:13px;color:var(--coral);font-weight:600}
+.share-card .sc-act{font-size:11.5px;color:var(--accent);font-weight:500;letter-spacing:-0.005em}
+
+.h-input{flex-shrink:0;padding:10px 14px 14px;border-top:1px solid var(--border-soft);display:flex;align-items:center;gap:10px;background:var(--bg-app)}
+.h-input .plus-i{font-size:22px;color:var(--text-3);cursor:pointer;flex-shrink:0}
+.h-input .box-h{flex:1;background:var(--bg-soft);border-radius:18px;padding:9px 14px;font-size:12.5px;color:var(--text-3)}
+.h-input .send-h{width:32px;height:32px;background:var(--accent);color:white;border-radius:50%;display:grid;place-items:center;font-size:14px;cursor:pointer;flex-shrink:0}
+
+/* ============ POST DETAIL v2: 付费卡 (简化) + 转发 ============ */
+.paywall{margin:20px 0 14px;border-radius:18px;background:linear-gradient(135deg, #3C3489 0%, #5B47E8 100%);color:white;padding:20px;position:relative;overflow:hidden}
+.paywall::before{content:'';position:absolute;top:-40px;right:-30px;width:140px;height:140px;background:radial-gradient(circle, rgba(255,255,255,.12), transparent 65%);border-radius:50%;pointer-events:none}
+.paywall .pw-ttl{position:relative;font-size:16px;font-weight:500;letter-spacing:-0.01em;margin-bottom:6px;line-height:1.3}
+.paywall .pw-sub{position:relative;font-size:11.5px;opacity:.78;line-height:1.55;margin-bottom:18px}
+.paywall .pw-price-row{position:relative;display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+.paywall .pw-price{font-size:32px;font-weight:500;letter-spacing:-0.025em;line-height:1;font-family:var(--sans)}
+.paywall .pw-price .cur{font-size:15px;opacity:.7;margin-right:2px;font-family:var(--mono);font-weight:400}
+.paywall .pw-origin{font-family:var(--mono);font-size:12px;opacity:.5;text-decoration:line-through}
+.paywall .pw-cta{position:relative;display:flex;gap:8px;margin-bottom:14px}
+.paywall .pw-cta .btn-buy{flex:1;background:white;color:var(--accent-deep);padding:13px;border-radius:11px;font-weight:500;font-size:13.5px;text-align:center;cursor:pointer;letter-spacing:-0.005em}
+.paywall .pw-cta .btn-gift{width:48px;background:rgba(255,255,255,.14);border-radius:11px;display:grid;place-items:center;color:white;font-size:18px;cursor:pointer}
+.paywall .pw-social{position:relative;font-family:var(--mono);font-size:10px;opacity:.7;letter-spacing:.02em}
+
+.try-bot{border:1px solid var(--border);border-radius:14px;padding:14px;background:var(--bg-app);margin:14px 0 8px;display:flex;align-items:center;gap:12px}
+.try-bot .ic-bot{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#3C3489,#7C6FE8);color:white;display:grid;place-items:center;font-size:19px;flex-shrink:0}
+.try-bot .info{flex:1;min-width:0}
+.try-bot .info .ttl{font-size:13px;font-weight:500;margin-bottom:3px;letter-spacing:-0.005em}
+.try-bot .info .sub{font-size:10.5px;color:var(--text-3);font-family:var(--mono)}
+.try-bot .b-cta{padding:8px 16px;border-radius:8px;background:var(--text);color:white;font-size:11.5px;font-weight:500;cursor:pointer;flex-shrink:0;letter-spacing:-0.005em}
+
+.post-actions-v2{flex-shrink:0;padding:10px 14px 12px;border-top:1px solid var(--border-soft);display:flex;align-items:center;gap:14px;background:var(--bg-app)}
+.post-actions-v2 .reply{flex:1;background:var(--bg-soft);border-radius:18px;padding:9px 14px;font-size:12px;color:var(--text-3)}
+.post-actions-v2 .act{display:flex;align-items:center;gap:4px;color:var(--text-2);cursor:pointer;font-size:11px;font-family:var(--mono)}
+.post-actions-v2 .act i{font-size:20px}
+.post-actions-v2 .act.on{color:var(--pink)}
+.post-actions-v2 .act.fwd{color:var(--accent)}
+
+/* ============ NEW: SHARE SHEET (简化) ============ */
+.share-sheet-wrap{flex:1;display:flex;flex-direction:column;background:rgba(26,25,22,.4);backdrop-filter:blur(6px);position:relative}
+.sheet-dim{flex:1;cursor:pointer}
+.share-sheet{margin-top:auto;background:var(--bg-app);border-radius:24px 24px 0 0;padding:14px 16px 20px;display:flex;flex-direction:column;gap:16px;animation:slideUp .35s ease-out}
+.share-sheet .handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 2px}
+
+.preview-pin{display:flex;gap:12px;padding:12px;border-radius:12px;background:var(--bg-soft)}
+.preview-pin .pp-cover{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#E84A85,#FF9CC4);color:white;display:flex;align-items:center;justify-content:center;padding:5px;text-align:center;flex-shrink:0;font-family:var(--serif);font-style:italic;font-size:8.5px;line-height:1.2;font-weight:500}
+.preview-pin .pp-info{flex:1;min-width:0;align-self:center}
+.preview-pin .pp-ttl{font-size:13px;font-weight:500;margin-bottom:4px;letter-spacing:-0.005em}
+.preview-pin .pp-author{font-family:var(--mono);font-size:10px;color:var(--text-3)}
+
+.fav-contacts{display:flex;gap:16px;justify-content:space-between;padding:0 2px}
+.fav-c{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.fav-c .av-fc{width:48px;height:48px;color:white;display:grid;place-items:center;font-size:16px;font-weight:500;letter-spacing:-0.02em;border-radius:50%}
+.fav-c .av-fc.mirror{background:var(--text);border-radius:14px;position:relative}
+.fav-c .av-fc.mirror::after{content:'';position:absolute;bottom:-2px;right:-2px;width:13px;height:13px;background:var(--accent);border:2px solid var(--bg-app);border-radius:50%}
+.fav-c .av-fc.lin{background:linear-gradient(135deg,#E84A85,#FF9CC4)}
+.fav-c .av-fc.chen{background:linear-gradient(135deg,#5B47E8,#8B6FFF)}
+.fav-c .av-fc.zhou{background:linear-gradient(135deg,#1D9E75,#56C9A0)}
+.fav-c .av-fc.group{background:linear-gradient(135deg,#185FA5,#56A8E8);border-radius:14px;font-size:18px}
+.fav-c .nm-fc{font-size:11px;color:var(--text-2);letter-spacing:-0.005em}
+
+.channels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ch-cell{display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px 4px;background:var(--bg-soft);border-radius:12px;cursor:pointer;transition:background .15s}
+.ch-cell:hover{background:var(--bg-card)}
+.ch-cell .ch-ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:18px;color:white}
+.ch-cell .ch-ic.wx{background:#1AAD19}
+.ch-cell .ch-ic.lark{background:#185FA5}
+.ch-cell .ch-ic.link{background:var(--text-2)}
+.ch-cell .ch-ic.qr{background:var(--coral)}
+.ch-cell .ch-nm{font-size:11px;color:var(--text-2);letter-spacing:-0.005em}
+
+.commission-bar{background:var(--bg-soft);padding:11px 14px;border-radius:12px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-2);cursor:pointer}
+.commission-bar .ic-c{width:28px;height:28px;border-radius:50%;background:var(--amber-soft);display:grid;place-items:center;font-size:14px;color:var(--amber);flex-shrink:0}
+.commission-bar .info-c{flex:1;letter-spacing:-0.005em}
+.commission-bar strong{color:var(--text);font-weight:600}
+.commission-bar .arr-c{color:var(--text-3);font-size:15px}
+
+.share-cancel{text-align:center;padding:13px;background:var(--bg-soft);border-radius:12px;font-size:13.5px;color:var(--text);cursor:pointer;font-weight:500;letter-spacing:-0.005em}
+
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+.me-profile .info{flex:1}
+.me-profile .nm{font-size:16px;font-weight:500;letter-spacing:-0.01em}
+.me-profile .uid{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:3px}
+.me-profile .stats{display:flex;gap:14px;margin-top:5px}
+.me-profile .stats span{font-size:10.5px;color:var(--text-2);font-family:var(--mono)}
+.me-profile .stats span b{color:var(--text);font-weight:500;margin-right:2px}
+.me-profile .arr{color:var(--text-3);font-size:18px}
+.quota-box{border:1px solid var(--border);border-radius:14px;padding:16px;background:var(--bg-soft);margin-bottom:14px}
+.quota-box .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.quota-box .hd .l{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.04em;text-transform:uppercase}
+.quota-box .hd .p{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:500}
+.quota-box .big{font-size:28px;color:var(--text);line-height:1;font-weight:500;letter-spacing:-0.02em}
+.quota-box .big em{font-style:normal;color:var(--text-3);font-size:16px;margin-left:4px;font-weight:400}
+.quota-box .sub{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:6px}
+.quota-box .progress{height:4px;background:var(--bg-card);border-radius:2px;margin-top:12px;overflow:hidden}
+.quota-box .progress .fill{height:100%;width:42%;background:var(--accent);border-radius:2px}
+.list-section{border:1px solid var(--border);border-radius:14px;background:var(--bg-app);overflow:hidden;margin-bottom:12px}
+.list-row{padding:13px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border-soft);cursor:pointer}
+.list-row:last-child{border-bottom:none}
+.list-row:hover{background:var(--bg-soft)}
+.list-row .lic{width:32px;height:32px;border-radius:8px;background:var(--bg-card);display:grid;place-items:center;color:var(--text-2);flex-shrink:0;font-size:16px}
+.list-row .lic.accent{background:var(--accent-soft);color:var(--accent)}
+.list-row .lb{flex:1;font-size:13px;font-weight:500;letter-spacing:-0.005em}
+.list-row .lb .sub{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:3px;font-weight:400}
+.list-row .arr{color:var(--text-3);font-size:16px}
+.list-row .badge{font-family:var(--mono);font-size:10px;color:#085041;padding:2px 7px;border-radius:5px;background:var(--green-soft);font-weight:500}
+.list-row .badge.off{color:var(--text-3);background:var(--bg-card)}
+.list-row .badge.accent{color:var(--accent);background:var(--accent-soft)}
+
+/* footer */
+.footer-note{max-width:1400px;margin:120px auto 0;padding:48px 8px;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.04em;display:flex;justify-content:space-between}
+
+@media(max-width:1100px){.gallery{grid-template-columns:repeat(2,1fr)}.intro{grid-template-columns:1fr;gap:24px}.intro h2{font-size:42px}.meta-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.gallery{grid-template-columns:1fr}.intro h2{font-size:32px}body{padding:32px 12px 60px}.phone{transform:scale(.95)}.footer-note{flex-direction:column;gap:8px}}
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="page-header">
+  <div class="brand">
+    <div class="sigil">
+      <svg class="mirror-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <ellipse cx="16" cy="12.5" rx="9.5" ry="10.5" stroke="currentColor" stroke-width="1.75"/>
+        <ellipse cx="16" cy="12.5" rx="7.2" ry="8.2" fill="currentColor" fill-opacity="0.18"/>
+        <path d="M12.5 9.5c2-2.8 5.2-3.2 7.8-1.6" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+        <path d="M13.2 8.2l3.2 9.2" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.42"/>
+        <path d="M16 23.2v5.2" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/>
+        <circle cx="16" cy="29.8" r="2.1" stroke="currentColor" stroke-width="1.6"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h1>Mirror Mobile</h1>
+      <div class="tag">Prototype · v0.3 · 15 screens · interactive</div>
+    </div>
+  </div>
+
+  <div class="intro">
+    <h2>
+      Talk to your <span class="accent">agent</span>,<br>
+      <span class="light">share with</span> <span class="accent">friends</span>,<br>
+      <span class="light">grow as a</span> <span class="accent">community</span>.
+    </h2>
+    <div>
+      <p>v0.3 把对话做成统一通讯入口——你的 Mirror、通讯录里的朋友、甚至别人的付费 Agent，全在一个列表里。</p>
+      <p>每个界面都减去了多余的标签、徽章和密集元信息。<strong>简单优雅</strong>是这一版的核心——AI 时代不需要更复杂，需要更克制。</p>
+    </div>
+  </div>
+
+  <div class="meta-grid">
+    <div class="meta-cell"><div class="k">通讯入口</div><div class="v"><span class="hl">1</span> · 人 / AI</div></div>
+    <div class="meta-cell"><div class="k">付费形式</div><div class="v">买断 · <span class="hl">订阅</span></div></div>
+    <div class="meta-cell"><div class="k">设计语言</div><div class="v">Quiet <span class="hl">Calm</span></div></div>
+    <div class="meta-cell"><div class="k">屏幕数</div><div class="v"><span class="hl">15</span> screens</div></div>
+  </div>
+</header>
+
+<div class="tip-bar">
+  <i class="ti ti-hand-click"></i>
+  <span>v0.3 主张「简单而不失优雅」—— 减去 badges、密集元信息和过深的层级，让每屏一眼可读</span>
+</div>
+
+<!-- ============ GALLERY ============ -->
+<main class="gallery">
+
+  <!-- ============ S1: WELCOME ============ -->
+  <div class="screen-wrap" id="s-welcome">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:41</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+        <div class="s1">
+          <div class="s1-hero">
+            <div class="big-sigil">
+              <svg class="mirror-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <ellipse cx="16" cy="12.5" rx="9.5" ry="10.5" stroke="currentColor" stroke-width="1.75"/>
+                <ellipse cx="16" cy="12.5" rx="7.2" ry="8.2" fill="currentColor" fill-opacity="0.18"/>
+                <path d="M12.5 9.5c2-2.8 5.2-3.2 7.8-1.6" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+                <path d="M13.2 8.2l3.2 9.2" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.42"/>
+                <path d="M16 23.2v5.2" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/>
+                <circle cx="16" cy="29.8" r="2.1" stroke="currentColor" stroke-width="1.6"/>
+              </svg>
+            </div>
+            <h1>Mirror</h1>
+            <div class="sub">
+              和你的智能体<br>共同成长
+            </div>
+          </div>
+          <div class="s1-actions">
+            <button class="btn-primary"><i class="ti ti-mail"></i>邮箱注册</button>
+            <button class="btn-ghost">飞书 · 微信 · GitHub</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">01 / 15</div>
+      <div class="name">Welcome <span class="sep">·</span> <span class="accent">启动</span></div>
+      <div class="desc">入口页强调"自托管"与"陪伴"，引导 30 秒完成灵魂初始化</div>
+    </div>
+  </div>
+
+  <!-- ============ S2: CHAT ============ -->
+  <div class="screen-wrap" id="s-chat">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:42</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+        <div class="chat-head">
+          <i class="ti ti-chevron-left back"></i>
+          <div class="info">
+            <div class="agent">Mirror <span class="accent">· Athena</span></div>
+            <div class="status">listening</div>
+          </div>
+          <div class="model-pill"><span class="d"></span>claude-4</div>
+        </div>
+        <div class="chat-flow">
+          <div class="msg user"><div class="bubble">把昨天那篇 RL 论文的核心方法总结成 3 条，配一张架构图</div></div>
+          <div class="msg ai">
+            <div class="bubble">
+              在你的长时记忆里找到了，昨天 14:32 存过摘要。
+              <div class="tool-card">
+                <div class="row"><span class="ic ok"><i class="ti ti-check"></i></span><code>memory.search · render_diagram</code></div>
+              </div>
+              核心三条：<br>
+              <span class="bullet">1</span>用 GRPO 替代 PPO，免去 critic；<br>
+              <span class="bullet">2</span>rollouts 内做 group-relative 归一化；<br>
+              <span class="bullet">3</span>规则奖励训练数学/代码任务。
+            </div>
+          </div>
+        </div>
+        <div class="chat-input">
+          <div class="input-box">
+            <span class="slash">/</span>
+            <span style="flex:1">输入消息，或 / 唤起技能</span>
+            <i class="ti ti-microphone"></i>
+          </div>
+          <div class="send-btn"><i class="ti ti-arrow-up"></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">02 / 15</div>
+      <div class="name">Conversation <span class="sep">·</span> <span class="accent">与 Mirror</span></div>
+      <div class="desc">工具调用一行收起，重点回到内容本身</div>
+    </div>
+  </div>
+
+  <!-- ============ S3: 统一通讯 (简化版) ============ -->
+  <div class="screen-wrap" id="s-sessions">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:42</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+        <div class="app-bar">
+          <div class="title"><span class="accent">通讯</span></div>
+          <div class="actions"><i class="ti ti-search"></i><i class="ti ti-edit"></i></div>
+        </div>
+
+        <div class="content" style="padding:0;background:var(--bg-app)">
+
+          <!-- Mirror 置顶 -->
+          <div class="mirror-hero">
+            <div class="hh-av">
+              <svg class="mirror-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><ellipse cx="16" cy="12.5" rx="9.5" ry="10.5" stroke="currentColor" stroke-width="1.75"/><ellipse cx="16" cy="12.5" rx="7.2" ry="8.2" fill="currentColor" fill-opacity="0.18"/><path d="M12.5 9.5c2-2.8 5.2-3.2 7.8-1.6" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/><path d="M13.2 8.2l3.2 9.2" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.42"/><path d="M16 23.2v5.2" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/><circle cx="16" cy="29.8" r="2.1" stroke="currentColor" stroke-width="1.6"/></svg>
+            </div>
+            <div class="hh-body">
+              <div class="hh-nm">Mirror · Athena</div>
+              <div class="hh-line">已为你总结 RL 论文，已 pin 入记忆</div>
+            </div>
+            <div class="hh-time">14:32</div>
+          </div>
+
+          <div class="thread-divider"></div>
+
+          <div class="thread">
+            <div class="av-th lin">林</div>
+            <div class="body">
+              <div class="top-row">
+                <div class="nm">林岸</div>
+                <span class="time">13:20</span>
+              </div>
+              <div class="preview">[卡片] 我的 Soul 配置 · 你可以直接用</div>
+            </div>
+            <div class="unread-dot"></div>
+          </div>
+
+          <div class="thread">
+            <div class="av-th group">研</div>
+            <div class="body">
+              <div class="top-row">
+                <div class="nm">Agent 调教研究组</div>
+                <span class="time">11:05</span>
+              </div>
+              <div class="preview"><span class="at">@你</span> 周野发了对比测评</div>
+            </div>
+            <div class="unread-dot"></div>
+          </div>
+
+          <div class="thread">
+            <div class="av-th bot">岸</div>
+            <div class="body">
+              <div class="top-row">
+                <div class="nm">Athena-Lin <span class="bot-tag">付费体验</span></div>
+                <span class="time">10:48</span>
+              </div>
+              <div class="preview">林岸调教 8 个月的 Agent · ¥9.9 / 24h</div>
+            </div>
+          </div>
+
+          <div class="thread">
+            <div class="av-th chen">陈</div>
+            <div class="body">
+              <div class="top-row">
+                <div class="nm">陈墨</div>
+                <span class="time">昨天</span>
+              </div>
+              <div class="preview">/k8s-debug 推了 v1.3，记得 sync</div>
+            </div>
+          </div>
+
+          <div class="thread">
+            <div class="av-th zhou">周</div>
+            <div class="body">
+              <div class="top-row">
+                <div class="nm">周野</div>
+                <span class="time">昨天</span>
+              </div>
+              <div class="preview">那个对比我帮你跑了 6 个 prompt…</div>
+            </div>
+          </div>
+
+          <div class="thread">
+            <div class="av-th shen">沈</div>
+            <div class="body">
+              <div class="top-row">
+                <div class="nm">沈知微</div>
+                <span class="time">周一</span>
+              </div>
+              <div class="preview">[图片] 这个禁词列表你试试</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="tab-bar" data-nav="sessions">
+          <div class="tab active" data-target="s-sessions"><i class="ti ti-message-circle"></i><span>对话</span></div>
+          <div class="tab" data-target="s-feed"><i class="ti ti-compass"></i><span>生态</span></div>
+          <div class="tab" data-target="s-contacts"><i class="ti ti-users"></i><span>通讯录</span></div>
+          <div class="tab" data-target="s-drive"><i class="ti ti-cloud"></i><span>云盘</span></div>
+          <div class="tab" data-target="s-me"><i class="ti ti-user"></i><span>我的</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">03 / 15</div>
+      <div class="name">Messages <span class="sep">·</span> <span class="accent">通讯</span></div>
+      <div class="desc">Mirror 单独成卡置顶，其余按时间排——一眼能扫完</div>
+    </div>
+  </div>
+
+  <!-- ============ S4-NEW: HUMAN CHAT (简化版) ============ -->
+  <div class="screen-wrap" id="s-human-chat">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:43</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+        <div class="h-chat-head">
+          <i class="ti ti-chevron-left back"></i>
+          <div class="av-h">林</div>
+          <div class="info">
+            <div class="nm">林岸</div>
+            <div class="sub">在线</div>
+          </div>
+          <i class="ti ti-dots-vertical menu-i"></i>
+        </div>
+
+        <div class="h-chat-flow">
+
+          <div class="day-sep">今天</div>
+
+          <div class="h-msg them">
+            <div class="bub">你看了我新发的 SOUL 帖子没？</div>
+          </div>
+
+          <div class="h-msg me">
+            <div class="bub">看了，"清醒、有据、敢于反对" 写得真稳</div>
+          </div>
+
+          <div class="h-msg them">
+            <div class="bub">你直接拿去用就行 👇</div>
+          </div>
+
+          <div class="share-card">
+            <div class="sc-cover soul">
+              <span class="sc-quote">"清醒、有据、<br>敢于反对。"</span>
+            </div>
+            <div class="sc-body">
+              <div class="sc-ttl">林岸的 Soul · 8 个月在用</div>
+              <div class="sc-foot">
+                <span class="sc-price">¥12</span>
+                <span class="sc-act">一键导入 →</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="h-msg me">
+            <div class="bub">行，先解锁看看</div>
+          </div>
+
+        </div>
+
+        <div class="h-input">
+          <i class="ti ti-plus plus-i"></i>
+          <div class="box-h">输入消息</div>
+          <div class="send-h"><i class="ti ti-arrow-up"></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">04 / 15</div>
+      <div class="name">Human Chat <span class="sep">·</span> <span class="accent">和朋友</span></div>
+      <div class="desc">和通讯录里的人对话 —— 可互相分享 Soul、Skill、付费 Agent</div>
+    </div>
+  </div>
+
+  <!-- ============ S4: FEED (生态圈) NEW ============ -->
+  <div class="screen-wrap" id="s-feed">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:43</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+        <div class="feed-head">
+          <div class="tabs-pill" data-pillgroup="feed">
+            <span class="p on" data-pill="rec">推荐</span>
+            <span class="p" data-pill="fol">关注</span>
+            <span class="p" data-pill="skill">技能</span>
+            <span class="p" data-pill="soul">灵魂</span>
+          </div>
+          <i class="ti ti-search action"></i>
+        </div>
+
+        <div style="flex:1;overflow-y:auto;position:relative;background:var(--bg-soft)">
+          <div class="feed-grid">
+
+            <div class="feed-card">
+              <div class="cover h2">
+                <span class="label">SOUL · 5.3k 收藏</span>
+                <span class="cv-text">"清醒、有据、<br>敢于反对。"</span>
+              </div>
+              <div class="meta">
+                <div class="ttl">我给 Athena 的灵魂配置，用了 8 个月没改过</div>
+                <div class="author">
+                  <span class="av p">林</span>
+                  <span class="nm">林岸 · Lin Yan</span>
+                  <span class="likes on"><i class="ti ti-heart-filled"></i>5,346</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="feed-card">
+              <div class="cover h1 has-icon">
+                <span class="label">SKILL</span>
+                <i class="ti ti-bug"></i>
+              </div>
+              <div class="meta">
+                <div class="ttl">用 k8s-debug 技能救了我的命，附完整 prompt</div>
+                <div class="author">
+                  <span class="av">陈</span>
+                  <span class="nm">陈墨 · DevOps</span>
+                  <span class="likes"><i class="ti ti-heart"></i>892</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="feed-card">
+              <div class="cover h3 has-icon">
+                <span class="label">REVIEW</span>
+                <i class="ti ti-scale"></i>
+              </div>
+              <div class="meta">
+                <div class="ttl">实测对比：Claude-4 vs GPT-4o 谁更会写周报</div>
+                <div class="author">
+                  <span class="av g">周</span>
+                  <span class="nm">周野</span>
+                  <span class="likes"><i class="ti ti-heart"></i>1,204</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="feed-card">
+              <div class="cover h4">
+                <span class="label">PROMPT · 干货</span>
+                <span class="cv-text">让 Agent<br>戒掉客套话<br>的 7 句话</span>
+              </div>
+              <div class="meta">
+                <div class="ttl">让你的 Agent 戒掉"我可以为您"开头，附完整禁词列表</div>
+                <div class="author">
+                  <span class="av a">沈</span>
+                  <span class="nm">沈知微</span>
+                  <span class="likes on"><i class="ti ti-heart-filled"></i>3,128</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="feed-card">
+              <div class="cover h5 has-icon">
+                <span class="label">MEMORY</span>
+                <i class="ti ti-brain"></i>
+              </div>
+              <div class="meta">
+                <div class="ttl">我的 MEMORY.md 部分节选，看看 Agent 都记住了啥</div>
+                <div class="author">
+                  <span class="av b">徐</span>
+                  <span class="nm">徐潼</span>
+                  <span class="likes"><i class="ti ti-heart"></i>478</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="feed-card">
+              <div class="cover h6 has-icon">
+                <span class="label">CASE</span>
+                <i class="ti ti-bolt"></i>
+              </div>
+              <div class="meta">
+                <div class="ttl">凌晨 3 点 GPU 集群挂了，Agent 自动排错并通知我</div>
+                <div class="author">
+                  <span class="av">高</span>
+                  <span class="nm">高临</span>
+                  <span class="likes"><i class="ti ti-heart"></i>2,089</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="feed-card">
+              <div class="cover h7">
+                <span class="label">TEMPLATE</span>
+                <span class="cv-text">通用<br>周报模板</span>
+              </div>
+              <div class="meta">
+                <div class="ttl">用了一个月没踩过雷的飞书周报技能，开源分享</div>
+                <div class="author">
+                  <span class="av p">小</span>
+                  <span class="nm">小苇</span>
+                  <span class="likes"><i class="ti ti-heart"></i>674</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="feed-card">
+              <div class="cover h8 has-icon">
+                <span class="label">DEEP DIVE</span>
+                <i class="ti ti-route"></i>
+              </div>
+              <div class="meta">
+                <div class="ttl">如何为不同任务路由不同模型，省 60% 成本</div>
+                <div class="author">
+                  <span class="av g">李</span>
+                  <span class="nm">李伯</span>
+                  <span class="likes"><i class="ti ti-heart"></i>1,533</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="fab"><i class="ti ti-plus"></i></div>
+
+        <div class="tab-bar" data-nav="feed">
+          <div class="tab" data-target="s-sessions"><i class="ti ti-message-circle"></i><span>对话</span></div>
+          <div class="tab active" data-target="s-feed"><i class="ti ti-compass"></i><span>生态</span></div>
+          <div class="tab" data-target="s-contacts"><i class="ti ti-users"></i><span>通讯录</span></div>
+          <div class="tab" data-target="s-drive"><i class="ti ti-cloud"></i><span>云盘</span></div>
+          <div class="tab" data-target="s-me"><i class="ti ti-user"></i><span>我的</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">05 / 15</div>
+      <div class="name">Plaza <span class="sep">·</span> <span class="accent">生态圈</span></div>
+      <div class="desc">小红书式双列瀑布流。分享 Soul 配置 / Skill 心得 / 模型对比，FAB 发帖</div>
+    </div>
+  </div>
+
+  <!-- ============ S6: POST DETAIL v2 (付费 + 推广) ============ -->
+  <div class="screen-wrap" id="s-post">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:43</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+        <div class="post-head">
+          <i class="ti ti-chevron-left back"></i>
+          <div class="author-mini">
+            <div class="av">林</div>
+            <div>
+              <div class="nm">林岸 · Lin Yan</div>
+              <div class="sub">SOUL CRAFTER · 5.3k followers</div>
+            </div>
+          </div>
+          <div class="follow">关注</div>
+        </div>
+
+        <div class="post-cover">
+          <div class="quote">"清醒、有据、<br>敢于反对。"</div>
+          <div class="idx">1 / 3</div>
+        </div>
+
+        <div class="post-body">
+          <h3>我给 Athena 的灵魂配置，用了 8 个月没改过</h3>
+          <div class="ts">5,346 收藏 · 412 评论</div>
+
+          <p>很多人问我为什么 Athena 输出这么"硬"——既不堆砌客套话，也敢于直接指出我的错误。其实秘诀就在 SOUL.md 里。</p>
+
+          <div class="quote-box">
+            "清醒、有据、敢于反对。"<br>
+            这一句是我所有 Agent 的核心准绳。
+          </div>
+
+          <p>我把工作原则压缩成 <strong>4 条</strong>——以下是前 2 条，完整版需要解锁：</p>
+
+          <div class="code-snip">
+<span class="k">PRINCIPLES</span>:<br>
+&nbsp;&nbsp;- 先给结论再给推理<br>
+&nbsp;&nbsp;- 不确定就说"不确定"，给概率<br>
+&nbsp;&nbsp;- ▓▓▓▓▓▓▓▓▓▓▓▓<br>
+&nbsp;&nbsp;- ▓▓▓▓▓▓▓▓▓▓▓▓
+          </div>
+
+          <!-- ============ 付费卡 (简化) ============ -->
+          <div class="paywall">
+            <div class="pw-ttl">解锁完整 SOUL + 实战案例</div>
+            <div class="pw-sub">8 个月迭代细节 · 14 个对话案例 · 一键导入 Agent</div>
+
+            <div class="pw-price-row">
+              <div class="pw-price"><span class="cur">¥</span>12</div>
+              <div class="pw-origin">¥29.9</div>
+            </div>
+
+            <div class="pw-cta">
+              <div class="btn-buy">立即解锁</div>
+              <div class="btn-gift"><i class="ti ti-gift"></i></div>
+            </div>
+
+            <div class="pw-social">1,247 人已解锁 · 好评 98.7%</div>
+          </div>
+
+          <p>此外，作者也开放了自己的 Agent 试用：</p>
+
+          <!-- 体验作者的 Agent -->
+          <div class="try-bot">
+            <div class="ic-bot"><i class="ti ti-sparkles"></i></div>
+            <div class="info">
+              <div class="ttl">Athena-Lin</div>
+              <div class="sub">作者本人在用 · ¥9.9 / 24h</div>
+            </div>
+            <div class="b-cta">对话</div>
+          </div>
+
+          <div class="post-tags">
+            <span class="chip accent">#SOUL.md</span>
+            <span class="chip accent">#Agent调教</span>
+          </div>
+        </div>
+
+        <div class="post-actions-v2">
+          <div class="reply">说点什么…</div>
+          <div class="act on"><i class="ti ti-heart-filled"></i><span>5.3k</span></div>
+          <div class="act"><i class="ti ti-bookmark"></i></div>
+          <div class="act fwd"><i class="ti ti-share-3"></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">06 / 15</div>
+      <div class="name">Post <span class="sep">·</span> <span class="accent">付费内容</span></div>
+      <div class="desc">付费卡只保留必要元素 —— 标题、价格、解锁按钮、一行社交证明</div>
+    </div>
+  </div>
+
+  <!-- ============ S7-NEW: SHARE SHEET (转发浮层) ============ -->
+  <div class="screen-wrap" id="s-share">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:43</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+
+        <!-- 底层（模糊后的帖子页面影） -->
+        <div class="post-head" style="opacity:.5">
+          <i class="ti ti-chevron-left back"></i>
+          <div class="author-mini">
+            <div class="av">林</div>
+            <div>
+              <div class="nm">林岸 · Lin Yan</div>
+              <div class="sub">SOUL CRAFTER · 5.3k followers</div>
+            </div>
+          </div>
+          <div class="follow">关注</div>
+        </div>
+
+        <div class="share-sheet-wrap">
+          <div class="sheet-dim"></div>
+          <div class="share-sheet">
+            <div class="handle"></div>
+
+            <div class="preview-pin">
+              <div class="pp-cover">"清醒、有据、<br>敢于反对。"</div>
+              <div class="pp-info">
+                <div class="pp-ttl">林岸的 Soul · 8 个月在用</div>
+                <div class="pp-author">¥12 · 林岸</div>
+              </div>
+            </div>
+
+            <div class="fav-contacts">
+              <div class="fav-c">
+                <div class="av-fc mirror">
+                  <svg class="mirror-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><ellipse cx="16" cy="12.5" rx="9.5" ry="10.5" stroke="currentColor" stroke-width="1.75"/><ellipse cx="16" cy="12.5" rx="7.2" ry="8.2" fill="currentColor" fill-opacity="0.18"/><path d="M12.5 9.5c2-2.8 5.2-3.2 7.8-1.6" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/><path d="M13.2 8.2l3.2 9.2" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.42"/><path d="M16 23.2v5.2" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/><circle cx="16" cy="29.8" r="2.1" stroke="currentColor" stroke-width="1.6"/></svg>
+                </div>
+                <div class="nm-fc">Mirror</div>
+              </div>
+              <div class="fav-c">
+                <div class="av-fc lin">林</div>
+                <div class="nm-fc">林岸</div>
+              </div>
+              <div class="fav-c">
+                <div class="av-fc chen">陈</div>
+                <div class="nm-fc">陈墨</div>
+              </div>
+              <div class="fav-c">
+                <div class="av-fc zhou">周</div>
+                <div class="nm-fc">周野</div>
+              </div>
+              <div class="fav-c">
+                <div class="av-fc group">研</div>
+                <div class="nm-fc">研究组</div>
+              </div>
+            </div>
+
+            <div class="channels">
+              <div class="ch-cell">
+                <div class="ch-ic wx"><i class="ti ti-brand-wechat"></i></div>
+                <div class="ch-nm">微信</div>
+              </div>
+              <div class="ch-cell">
+                <div class="ch-ic lark"><i class="ti ti-brand-feishu"></i></div>
+                <div class="ch-nm">飞书</div>
+              </div>
+              <div class="ch-cell">
+                <div class="ch-ic link"><i class="ti ti-link"></i></div>
+                <div class="ch-nm">链接</div>
+              </div>
+              <div class="ch-cell">
+                <div class="ch-ic qr"><i class="ti ti-qrcode"></i></div>
+                <div class="ch-nm">二维码</div>
+              </div>
+            </div>
+
+            <div class="commission-bar">
+              <div class="ic-c"><i class="ti ti-coin"></i></div>
+              <div class="info-c">推广可得 <strong>20% 返佣</strong></div>
+              <i class="ti ti-chevron-right arr-c"></i>
+            </div>
+
+            <div class="share-cancel">取消</div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">07 / 15</div>
+      <div class="name">Share Sheet <span class="sep">·</span> <span class="accent">转发浮层</span></div>
+      <div class="desc">通讯录常用联系人横排 + 外部渠道。底部"分销返佣"把推广做成赚钱机制</div>
+    </div>
+  </div>
+
+  <!-- ============ S6: CONTACTS NEW ============ -->
+  <div class="screen-wrap" id="s-contacts">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:44</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+
+        <div class="contact-search">
+          <div class="sb"><i class="ti ti-search"></i><span style="flex:1">搜索用户、Soul、Skill…</span></div>
+          <div class="add"><i class="ti ti-user-plus"></i></div>
+        </div>
+
+        <div class="contact-tabs" data-pillgroup="contacts">
+          <span class="ct on" data-pill="rec">推荐</span>
+          <span class="ct" data-pill="fol">关注</span>
+          <span class="ct" data-pill="fan">粉丝</span>
+        </div>
+
+        <div style="flex:1;overflow-y:auto">
+
+          <div class="user-card">
+            <div class="av-lg a2">林</div>
+            <div class="body">
+              <div class="nm-line">
+                <span class="nm">林岸 · Lin Yan</span>
+                <span class="role cre">SOUL CRAFTER</span>
+              </div>
+              <div class="bio">"清醒、有据、敢于反对"的作者</div>
+              <div class="common">
+                <span><b>5.3k</b>粉丝</span>
+                <span><b>23</b>篇笔记</span>
+                <span><b>3</b>个共同好友</span>
+              </div>
+            </div>
+            <div class="btn-follow un">+ 关注</div>
+          </div>
+
+          <div class="user-card">
+            <div class="av-lg a1">陈</div>
+            <div class="body">
+              <div class="nm-line">
+                <span class="nm">陈墨 · DevOps</span>
+                <span class="role dev">K8S 大佬</span>
+              </div>
+              <div class="bio">/k8s-debug 技能作者</div>
+              <div class="common">
+                <span><b>1.8k</b>粉丝</span>
+                <span><b>共用</b>k8s-debug</span>
+              </div>
+            </div>
+            <div class="btn-follow ed">已关注</div>
+          </div>
+
+          <div class="user-card">
+            <div class="av-lg a3">周</div>
+            <div class="body">
+              <div class="nm-line">
+                <span class="nm">周野</span>
+                <span class="role exp">长文专家</span>
+              </div>
+              <div class="bio">研究 Agent 写作风格 3 年</div>
+              <div class="common">
+                <span><b>892</b>粉丝</span>
+                <span><b>互</b>关</span>
+              </div>
+            </div>
+            <div class="btn-follow ed">互关</div>
+          </div>
+
+          <div class="user-card">
+            <div class="av-lg a4">沈</div>
+            <div class="body">
+              <div class="nm-line">
+                <span class="nm">沈知微</span>
+                <span class="role">PROMPT 工匠</span>
+              </div>
+              <div class="bio">极简提示词与认知压缩</div>
+              <div class="common">
+                <span><b>3.1k</b>粉丝</span>
+                <span><b>4</b>个共同关注</span>
+              </div>
+            </div>
+            <div class="btn-follow un">+ 关注</div>
+          </div>
+
+          <div class="user-card">
+            <div class="av-lg a5">徐</div>
+            <div class="body">
+              <div class="nm-line">
+                <span class="nm">徐潼</span>
+                <span class="role dev">研究方向相似</span>
+              </div>
+              <div class="bio">和你的工作流非常像</div>
+              <div class="common">
+                <span><b>234</b>粉丝</span>
+                <span><b>共</b>用 ruff</span>
+              </div>
+            </div>
+            <div class="btn-follow un">+ 关注</div>
+          </div>
+
+          <div class="user-card">
+            <div class="av-lg a6">高</div>
+            <div class="body">
+              <div class="nm-line">
+                <span class="nm">高临</span>
+                <span class="role cre">凌晨 3 点的人</span>
+              </div>
+              <div class="bio">夜间值班 Agent 作者</div>
+              <div class="common">
+                <span><b>2.0k</b>粉丝</span>
+              </div>
+            </div>
+            <div class="btn-follow un">+ 关注</div>
+          </div>
+
+        </div>
+
+        <div class="tab-bar" data-nav="contacts">
+          <div class="tab" data-target="s-sessions"><i class="ti ti-message-circle"></i><span>对话</span></div>
+          <div class="tab" data-target="s-feed"><i class="ti ti-compass"></i><span>生态</span></div>
+          <div class="tab active" data-target="s-contacts"><i class="ti ti-users"></i><span>通讯录</span></div>
+          <div class="tab" data-target="s-drive"><i class="ti ti-cloud"></i><span>云盘</span></div>
+          <div class="tab" data-target="s-me"><i class="ti ti-user"></i><span>我的</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">08 / 15</div>
+      <div class="name">Contacts <span class="sep">·</span> <span class="accent">通讯录</span></div>
+      <div class="desc">按角色徽章分层，关注/互关/推荐三态。亮点：基于 Soul/Skill 相似度的"研究方向相似"提示</div>
+    </div>
+  </div>
+
+  <!-- ============ S7: DRIVE NEW ============ -->
+  <div class="screen-wrap" id="s-drive">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:44</span><span class="right" style="color:white"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+
+        <div class="drive-head-bg">
+          <div class="hd">
+            <div class="ttl">云盘 <span class="accent">· Drive</span></div>
+            <div class="icons"><i class="ti ti-search"></i><i class="ti ti-upload"></i></div>
+          </div>
+          <div class="drive-storage">
+            <div class="stat"><span class="big">32.1</span><span class="total">/ 50 GB</span></div>
+            <div class="sub">Pro 套餐 · Agent 实时同步</div>
+            <div class="bar">
+              <span class="b1"></span><span class="b2"></span><span class="b3"></span><span class="b4"></span>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1;overflow-y:auto">
+
+          <div class="drive-cats">
+            <div class="drive-cat"><div class="ic i1"><i class="ti ti-photo"></i></div><div class="nm">图片</div><div class="ct">342</div></div>
+            <div class="drive-cat"><div class="ic i2"><i class="ti ti-file-text"></i></div><div class="nm">文档</div><div class="ct">87</div></div>
+            <div class="drive-cat"><div class="ic i3"><i class="ti ti-movie"></i></div><div class="nm">视频</div><div class="ct">24</div></div>
+            <div class="drive-cat"><div class="ic i4"><i class="ti ti-folder"></i></div><div class="nm">其他</div><div class="ct">156</div></div>
+          </div>
+
+          <div class="section-label" style="padding:0 14px;margin:6px 0 8px">最近上传 · RECENT <span class="line"></span> <span style="font-family:var(--mono);font-size:9.5px;color:var(--accent);text-transform:none;letter-spacing:0">查看全部 →</span></div>
+
+          <div class="drive-recent">
+            <div class="drive-file">
+              <div class="preview p1"><i class="ti ti-photo"></i><span class="ext">PNG</span></div>
+              <div class="info"><div class="nm">screenshot_athena.png</div><div class="sz">2.4 MB · 2h ago</div></div>
+            </div>
+            <div class="drive-file">
+              <div class="preview p2"><i class="ti ti-file-text"></i><span class="ext">PDF</span></div>
+              <div class="info"><div class="nm">GRPO 论文笔记.pdf</div><div class="sz">1.8 MB · 昨天</div></div>
+            </div>
+            <div class="drive-file">
+              <div class="preview p3"><i class="ti ti-photo"></i><span class="ext">JPG</span></div>
+              <div class="info"><div class="nm">架构图_v3.jpg</div><div class="sz">512 KB · 昨天</div></div>
+            </div>
+            <div class="drive-file">
+              <div class="preview p4"><i class="ti ti-movie"></i><span class="ext">MP4</span></div>
+              <div class="info"><div class="nm">demo_recording.mp4</div><div class="sz">38.2 MB · 2 天前</div></div>
+            </div>
+          </div>
+
+          <div class="section-label" style="padding:0 14px;margin:6px 0 8px">Agent 共享 · SHARED WITH AGENT <span class="line"></span></div>
+
+          <div class="drive-list-section">
+            <div class="drive-list-item">
+              <div class="fi f1"><i class="ti ti-brand-markdown"></i></div>
+              <div class="body">
+                <div class="nm">SOUL.md</div>
+                <div class="sub">1.4 KB · Agent 自动同步 · 12 分钟前</div>
+              </div>
+              <i class="ti ti-dots-vertical more"></i>
+            </div>
+            <div class="drive-list-item">
+              <div class="fi f1"><i class="ti ti-brand-markdown"></i></div>
+              <div class="body">
+                <div class="nm">MEMORY.md</div>
+                <div class="sub">1,432 chars · Agent 自动同步 · 1 小时前</div>
+              </div>
+              <i class="ti ti-dots-vertical more"></i>
+            </div>
+            <div class="drive-list-item">
+              <div class="fi f2"><i class="ti ti-folder"></i></div>
+              <div class="body">
+                <div class="nm">/skills/</div>
+                <div class="sub">23 个技能 · 包含 commit-summary、k8s-debug…</div>
+              </div>
+              <i class="ti ti-dots-vertical more"></i>
+            </div>
+            <div class="drive-list-item">
+              <div class="fi f3"><i class="ti ti-archive"></i></div>
+              <div class="body">
+                <div class="nm">conversations.archive</div>
+                <div class="sub">1,247 turns · 自动归档 · 每晚 23:55</div>
+              </div>
+              <i class="ti ti-dots-vertical more"></i>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="fab"><i class="ti ti-upload"></i></div>
+
+        <div class="tab-bar" data-nav="drive">
+          <div class="tab" data-target="s-sessions"><i class="ti ti-message-circle"></i><span>对话</span></div>
+          <div class="tab" data-target="s-feed"><i class="ti ti-compass"></i><span>生态</span></div>
+          <div class="tab" data-target="s-contacts"><i class="ti ti-users"></i><span>通讯录</span></div>
+          <div class="tab active" data-target="s-drive"><i class="ti ti-cloud"></i><span>云盘</span></div>
+          <div class="tab" data-target="s-me"><i class="ti ti-user"></i><span>我的</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">09 / 15</div>
+      <div class="name">Drive <span class="sep">·</span> <span class="accent">云盘</span></div>
+      <div class="desc">用户文件 + Agent 自动同步（SOUL/MEMORY/Skills）。可对接运营商低价云盘资源</div>
+    </div>
+  </div>
+
+  <!-- ============ S8: SKILLS ============ -->
+  <div class="screen-wrap" id="s-skills">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:45</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+        <div class="app-bar">
+          <div class="title"><span class="accent">技能</span> Skills</div>
+          <div class="actions"><i class="ti ti-search"></i><i class="ti ti-plus"></i></div>
+        </div>
+        <div class="content" style="padding-top:12px">
+          <div class="tab-switch" data-tabgroup="skills">
+            <div class="t on" data-tab="my">我的 · 23</div>
+            <div class="t" data-tab="market">市场</div>
+            <div class="t" data-tab="logs">调用记录</div>
+          </div>
+          <div class="skill-card">
+            <div class="top"><div class="slug">k8s-debug</div><div class="toggle"></div></div>
+            <div class="desc">K8s Pod OOM / CrashLoop 排错流程，串联 kubectl、日志检索与常见修复方案</div>
+            <div class="foot"><span class="chip blue">devops</span><span class="uses">↑ 8</span></div>
+          </div>
+          <div class="skill-card">
+            <div class="top"><div class="slug">weekly-report</div><div class="toggle"></div></div>
+            <div class="desc">从一周会话历史抽取关键产出 → 输出结构化飞书周报 Markdown</div>
+            <div class="foot"><span class="chip blue">writing</span><span class="uses">↑ 14</span></div>
+          </div>
+          <div class="skill-card">
+            <div class="top"><div class="slug">paper-cards</div><div class="toggle off"></div></div>
+            <div class="desc">把 arXiv 论文 PDF 拆成 Anki 卡片，自动填中文释义与示例</div>
+            <div class="foot"><span class="chip blue">research</span><span class="uses">↑ 3</span></div>
+          </div>
+          <div class="skill-card">
+            <div class="top"><div class="slug">commit-summary</div><div class="toggle"></div></div>
+            <div class="desc">基于 git diff 生成符合 conventional commits 规范的提交信息</div>
+            <div class="foot"><span class="chip blue">git</span><span class="uses">↑ 41</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">10 / 15</div>
+      <div class="name">Skills <span class="sep">·</span> <span class="accent">技能库</span></div>
+      <div class="desc">/slug 风格命名，自动生成标记 + 调用次数。点击 toggle 切换开关</div>
+    </div>
+  </div>
+
+  <!-- ============ S9: SOUL ============ -->
+  <div class="screen-wrap" id="s-soul">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:45</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+        <div class="app-bar">
+          <div class="title"><span class="accent">灵魂</span> Soul</div>
+          <div class="actions"><span style="font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:500">保存</span></div>
+        </div>
+        <div class="content">
+          <div class="soul-hero">
+            <div class="sigil-mini"><i class="ti ti-sparkles"></i></div>
+            <h3>Athena</h3>
+            <div class="quote">"<span class="accent">清醒、有据、敢于反对。</span>"</div>
+          </div>
+          <div class="field">
+            <div class="label"><span class="req">●</span> 我是谁 · IDENTITY</div>
+            <div class="input">资深算法工程师助理，专注 LLM/Agent/RL 领域；擅长论文阅读、实验设计与代码评审。</div>
+          </div>
+          <div class="field">
+            <div class="label"><span class="req">●</span> 一句话目标 · GOAL</div>
+            <div class="input">帮我把"研究 → 实验 → 总结"的闭环做快、做准、做有沉淀。</div>
+          </div>
+          <div class="field">
+            <div class="label">工作原则 · PRINCIPLES</div>
+            <div class="chips-input">
+              <span class="chip-x">先给结论再给推理 <span class="x">×</span></span>
+              <span class="chip-x">不确定就说不确定 <span class="x">×</span></span>
+              <span class="chip-x">代码必须可执行 <span class="x">×</span></span>
+              <span class="chip-x">引用必须有出处 <span class="x">×</span></span>
+              <span class="chip-add">+ 添加</span>
+            </div>
+          </div>
+          <div class="field">
+            <div class="label">禁区 · TABOO</div>
+            <div class="chips-input">
+              <span class="chip-x">禁用 emoji <span class="x">×</span></span>
+              <span class="chip-x">禁用客套话 <span class="x">×</span></span>
+              <span class="chip-add">+ 添加</span>
+            </div>
+          </div>
+          <div class="adv-toggle"><span>原始 SOUL.md 编辑</span><span class="mode">ADVANCED →</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">11 / 15</div>
+      <div class="name">Soul <span class="sep">·</span> <span class="accent">灵魂编辑器</span></div>
+      <div class="desc">把 SOUL.md 拆成结构化字段。可一键分享到生态圈</div>
+    </div>
+  </div>
+
+  <!-- ============ S10: MEMORY ============ -->
+  <div class="screen-wrap" id="s-memory">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:46</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+        <div class="app-bar">
+          <div class="title"><span class="accent">记忆</span> Memory</div>
+          <div class="actions"><i class="ti ti-search"></i></div>
+        </div>
+        <div class="content" style="padding-top:12px">
+          <div class="tab-switch" data-tabgroup="memory">
+            <div class="t" data-tab="soul">灵魂</div>
+            <div class="t on" data-tab="long">长时 · 47</div>
+            <div class="t" data-tab="user">画像</div>
+          </div>
+          <div class="mem-stats">
+            <div class="mem-stat"><div class="k">MEMORY.md</div><div class="v">1,432<em>/ 2,200</em></div><div class="bar"><div class="fill" style="width:65%"></div></div></div>
+            <div class="mem-stat"><div class="k">USER.md</div><div class="v">890<em>/ 1,375</em></div><div class="bar"><div class="fill" style="width:64%"></div></div></div>
+          </div>
+          <div class="mem-card pinned">
+            <div class="h"><span class="pin"><i class="ti ti-pin-filled"></i></span><span class="tag">env</span><span class="ts">3 天前</span></div>
+            <div class="txt">用户主力机为 M3 Max MacBook Pro 64GB；Python 项目统一用 uv 管理；偏好 ruff 而非 black</div>
+            <div class="src">从会话 #312 沉淀</div>
+          </div>
+          <div class="mem-card pinned">
+            <div class="h"><span class="pin"><i class="ti ti-pin-filled"></i></span><span class="tag">project</span><span class="ts">1 周前</span></div>
+            <div class="txt">主项目 Athena-RL 部署在内网 K8s，命名空间 ai-prod；GPU 集群在 10.0.4.x</div>
+            <div class="src">从会话 #289 沉淀</div>
+          </div>
+          <div class="mem-card">
+            <div class="h"><span class="tag">lesson</span><span class="ts">昨天</span></div>
+            <div class="txt">GRPO 在小 batch 下不稳定，用户验证过 batch≥64 才收敛</div>
+            <div class="src">从会话 #318 沉淀</div>
+          </div>
+          <div class="mem-card">
+            <div class="h"><span class="tag">preference</span><span class="ts">2 天前</span></div>
+            <div class="txt">用户讨厌"不确定"的修饰语堆叠（"可能"、"也许"），坚持给一个概率或不给</div>
+            <div class="src">从会话 #315 沉淀</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">12 / 15</div>
+      <div class="name">Memory <span class="sep">·</span> <span class="accent">长时记忆</span></div>
+      <div class="desc">pin 过条目高亮置顶。tab 切换 灵魂 / 长时 / 画像 三层</div>
+    </div>
+  </div>
+
+  <!-- ============ S11: ROUTING ============ -->
+  <div class="screen-wrap" id="s-routing">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:46</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+        <div class="app-bar">
+          <div class="title"><span class="accent">模型</span> Routing</div>
+          <div class="actions"><i class="ti ti-settings"></i></div>
+        </div>
+        <div class="content">
+          <div class="routing-graph">
+            <div class="node task" style="left:14px;top:14px"><span class="ic"></span>推理 · Reasoning</div>
+            <div class="node task" style="left:14px;top:60px"><span class="ic"></span>代码 · Code</div>
+            <div class="node task" style="left:14px;top:106px"><span class="ic"></span>长文本 · Long-ctx</div>
+            <div class="node task" style="left:14px;top:152px"><span class="ic"></span>图像 · Vision</div>
+            <div class="node task" style="left:14px;top:198px"><span class="ic"></span>闲聊 · Casual</div>
+            <div class="node model" style="right:14px;top:14px"><span class="ic"></span><span class="name">claude-4-opus</span></div>
+            <div class="node model" style="right:14px;top:60px"><span class="ic"></span><span class="name">gpt-4o</span></div>
+            <div class="node model" style="right:14px;top:106px"><span class="ic"></span><span class="name">gemini-2.5</span></div>
+            <div class="node model" style="right:14px;top:152px"><span class="ic"></span><span class="name">qwen3-vl</span></div>
+            <div class="node model" style="right:14px;top:198px"><span class="ic green"></span><span class="name">llama · local</span></div>
+            <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 312 232" preserveAspectRatio="none">
+              <path d="M 120 26 C 180 26, 180 26, 200 26" stroke="#5B47E8" stroke-opacity=".25" fill="none" stroke-width="1"/>
+              <path d="M 120 72 C 180 72, 180 72, 200 72" stroke="#5B47E8" stroke-opacity=".25" fill="none" stroke-width="1"/>
+              <path d="M 120 118 C 180 118, 180 118, 200 118" stroke="#5B47E8" stroke-opacity=".25" fill="none" stroke-width="1"/>
+              <path d="M 120 164 C 180 164, 180 164, 200 164" stroke="#5B47E8" stroke-opacity=".25" fill="none" stroke-width="1"/>
+              <path d="M 120 210 C 180 210, 180 210, 200 210" stroke="#5B47E8" stroke-opacity=".25" fill="none" stroke-width="1"/>
+            </svg>
+          </div>
+          <div class="section-label">本月用量 · USAGE <span class="line"></span></div>
+          <div class="model-row"><div class="icon">A</div><div class="nm">claude-4-opus<div class="p">推理 · 代码</div></div><div class="stat"><div class="ok">$ 12.40</div></div></div>
+          <div class="model-row"><div class="icon">O</div><div class="nm">gpt-4o<div class="p">视觉 · 通用</div></div><div class="stat"><div class="ok">$ 6.20</div></div></div>
+          <div class="model-row"><div class="icon" style="background:var(--green-soft);color:#085041">L</div><div class="nm">llama-3.3 · local<div class="p">闲聊 · 草稿</div></div><div class="stat"><div class="ok">free</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">13 / 15</div>
+      <div class="name">Routing <span class="sep">·</span> <span class="accent">模型路由</span></div>
+      <div class="desc">"任务 → 模型"路由图 + 本月用量与成本</div>
+    </div>
+  </div>
+
+  <!-- ============ S12: CRON ============ -->
+  <div class="screen-wrap" id="s-cron">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:47</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+        <div class="app-bar">
+          <div class="title"><span class="accent">任务</span> Cron</div>
+          <div class="actions"><i class="ti ti-plus"></i></div>
+        </div>
+        <div class="content" style="padding-top:12px">
+          <div class="add-task">
+            <span class="plus">+</span>
+            <div style="flex:1">
+              <div style="font-size:12.5px;color:var(--text);font-weight:500">用自然语言创建任务</div>
+              <div class="hint">"每周一上午 9 点把上周 GitHub Star 总结一下…"</div>
+            </div>
+          </div>
+          <div class="section-label">进行中 · ACTIVE · 4 <span class="line"></span></div>
+          <div class="task-card">
+            <div class="h"><div class="ic"><i class="ti ti-news"></i></div><div class="nm">早间 AI 圈日报</div><div class="state on">● ON</div></div>
+            <div class="when">每天 <span class="cron">08:00</span> · 推送至飞书</div>
+            </div>
+          <div class="task-card">
+            <div class="h"><div class="ic"><i class="ti ti-calendar-event"></i></div><div class="nm">周一晨会议题整理</div><div class="state on">● ON</div></div>
+            <div class="when">每周一 <span class="cron">08:30</span> · 推送至本 App</div>
+            </div>
+          <div class="task-card">
+            <div class="h"><div class="ic"><i class="ti ti-message-circle"></i></div><div class="nm">值得关注的会话归档</div><div class="state on">● ON</div></div>
+            <div class="when">每天 <span class="cron">23:55</span> · 同步至云盘</div>
+            </div>
+          <div class="task-card">
+            <div class="h"><div class="ic" style="background:var(--blue-soft);color:#0C447C"><i class="ti ti-bolt"></i></div><div class="nm">GPU 集群异常监控</div><div class="state off">○ PAUSED</div></div>
+            <div class="when">每 <span class="cron">5min</span> · 异常推送至 TG</div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">14 / 15</div>
+      <div class="name">Cron <span class="sep">·</span> <span class="accent">定时任务</span></div>
+      <div class="desc">自然语言创建任务 + 周期/渠道/下次运行时间。可推送至云盘归档</div>
+    </div>
+  </div>
+
+  <!-- ============ S13: ME ============ -->
+  <div class="screen-wrap" id="s-me">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span>9:47</span><span class="right"><i class="ti ti-signal-4g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-filled"></i></span></div>
+        <div class="app-bar">
+          <div class="title"><span class="accent">我的</span> Account</div>
+          <div class="actions"><i class="ti ti-settings"></i></div>
+        </div>
+        <div class="content" style="padding-top:12px">
+          <div class="me-profile">
+            <div class="av">L</div>
+            <div class="info">
+              <div class="nm">Lin Yan</div>
+              <div class="uid">@ lin.yan · hermes.ours.io</div>
+              <div class="stats"><span><b>42</b>关注</span><span><b>317</b>粉丝</span><span><b>23</b>笔记</span></div>
+            </div>
+            <div class="arr">›</div>
+          </div>
+          <div class="quota-box">
+            <div class="hd"><div class="l">本月 TOKEN</div><div class="p">42%</div></div>
+            <div class="big">847<em>k / 2M</em></div>
+            <div class="progress"><div class="fill"></div></div>
+          </div>
+
+          <div class="section-label">Agent 心智 · MIND <span class="line"></span></div>
+          <div class="list-section">
+            <div class="list-row"><div class="lic accent"><i class="ti ti-sparkles"></i></div><div class="lb">灵魂<div class="sub">4 条原则 · 2 条禁区</div></div><i class="ti ti-chevron-right arr"></i></div>
+            <div class="list-row"><div class="lic accent"><i class="ti ti-brain"></i></div><div class="lb">记忆<div class="sub">长时 47 条</div></div><i class="ti ti-chevron-right arr"></i></div>
+            <div class="list-row"><div class="lic accent"><i class="ti ti-stack-2"></i></div><div class="lb">技能<div class="sub">23 个</div></div><i class="ti ti-chevron-right arr"></i></div>
+            <div class="list-row"><div class="lic accent"><i class="ti ti-route"></i></div><div class="lb">模型路由<div class="sub">本月 $18.6</div></div><i class="ti ti-chevron-right arr"></i></div>
+            <div class="list-row"><div class="lic accent"><i class="ti ti-calendar-cog"></i></div><div class="lb">定时任务<div class="sub">4 个进行中</div></div><i class="ti ti-chevron-right arr"></i></div>
+          </div>
+
+          <div class="section-label">渠道绑定 · CHANNELS <span class="line"></span></div>
+          <div class="list-section">
+            <div class="list-row"><div class="lic"><i class="ti ti-brand-feishu"></i></div><div class="lb">飞书 / Lark</div><span class="badge">已连接</span></div>
+            <div class="list-row"><div class="lic"><i class="ti ti-brand-wechat"></i></div><div class="lb">微信</div><span class="badge">已连接</span></div>
+            <div class="list-row"><div class="lic"><i class="ti ti-plug"></i></div><div class="lb">MCP Servers</div><i class="ti ti-chevron-right arr"></i></div>
+          </div>
+
+          <div class="section-label">系统 · SYSTEM <span class="line"></span></div>
+          <div class="list-section">
+            <div class="list-row"><div class="lic"><i class="ti ti-download"></i></div><div class="lb">数据导出</div><i class="ti ti-chevron-right arr"></i></div>
+            <div class="list-row"><div class="lic"><i class="ti ti-microphone"></i></div><div class="lb">语音输入</div><span class="badge">已启用</span></div>
+          </div>
+        </div>
+        <div class="tab-bar" data-nav="me">
+          <div class="tab" data-target="s-sessions"><i class="ti ti-message-circle"></i><span>对话</span></div>
+          <div class="tab" data-target="s-feed"><i class="ti ti-compass"></i><span>生态</span></div>
+          <div class="tab" data-target="s-contacts"><i class="ti ti-users"></i><span>通讯录</span></div>
+          <div class="tab" data-target="s-drive"><i class="ti ti-cloud"></i><span>云盘</span></div>
+          <div class="tab active" data-target="s-me"><i class="ti ti-user"></i><span>我的</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">
+      <div class="num">15 / 15</div>
+      <div class="name">Account <span class="sep">·</span> <span class="accent">我的</span></div>
+      <div class="desc">五个主 tab 之外的所有进阶设置都汇总到这里：心智 / 渠道 / 系统</div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer-note">
+  <span>MIRROR MOBILE · v0.3 · QUIET MESSAGING</span>
+  <span>15 SCREENS · LESS IS MORE</span>
+  <span>SELF-HOSTED · 200 USERS / INSTANCE</span>
+</footer>
+
+<script>
+// ============ INTERACTIVE TABS ============
+
+// 1. Bottom tab-bar: 点击后该手机内同步激活 + 滚动到对应屏幕
+document.querySelectorAll('.tab-bar').forEach(bar => {
+  bar.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      const target = tab.dataset.target;
+      if (!target) return;
+      // 滚动到目标屏幕
+      const targetEl = document.getElementById(target);
+      if (targetEl) {
+        targetEl.scrollIntoView({behavior:'smooth', block:'center'});
+      }
+      // 同步所有 tab-bar 的激活态
+      document.querySelectorAll('.tab-bar').forEach(b => {
+        b.querySelectorAll('.tab').forEach(t => {
+          t.classList.toggle('active', t.dataset.target === target);
+        });
+      });
+    });
+  });
+});
+
+// 2. tab-switch (内部分组 tab，如 我的/市场/调用记录)
+document.querySelectorAll('.tab-switch').forEach(grp => {
+  grp.querySelectorAll('.t').forEach(t => {
+    t.addEventListener('click', () => {
+      grp.querySelectorAll('.t').forEach(x => x.classList.remove('on'));
+      t.classList.add('on');
+    });
+  });
+});
+
+// 3. tabs-pill (生态圈 推荐/关注/技能/灵魂)
+document.querySelectorAll('[data-pillgroup]').forEach(grp => {
+  const sel = grp.classList.contains('contact-tabs') ? '.ct' : '.p';
+  grp.querySelectorAll(sel).forEach(p => {
+    p.addEventListener('click', () => {
+      grp.querySelectorAll(sel).forEach(x => x.classList.remove('on'));
+      p.classList.add('on');
+    });
+  });
+});
+
+// 4. skill-card toggle
+document.querySelectorAll('.skill-card .toggle').forEach(t => {
+  t.addEventListener('click', () => {
+    t.classList.toggle('off');
+  });
+});
+
+// 5. follow buttons
+document.querySelectorAll('.user-card .btn-follow').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.classList.contains('un')) {
+      btn.classList.remove('un');
+      btn.classList.add('ed');
+      btn.textContent = '已关注';
+    } else {
+      btn.classList.remove('ed');
+      btn.classList.add('un');
+      btn.textContent = '+ 关注';
+    }
+  });
+});
+
+// 6. like button on post detail
+document.querySelectorAll('.post-actions-bar .act, .post-actions-v2 .act').forEach(act => {
+  act.addEventListener('click', (e) => {
+    // forward button → 跳转到 share sheet
+    if (act.classList.contains('fwd')) {
+      const share = document.getElementById('s-share');
+      if (share) share.scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+    act.classList.toggle('on');
+  });
+});
+
+// 7. feed card likes toggle
+document.querySelectorAll('.feed-card .likes').forEach(l => {
+  l.addEventListener('click', (e) => {
+    e.stopPropagation();
+    l.classList.toggle('on');
+    const i = l.querySelector('i');
+    if (l.classList.contains('on')) {
+      i.className = 'ti ti-heart-filled';
+    } else {
+      i.className = 'ti ti-heart';
+    }
+  });
+});
+
+// 8. feed card click → 跳转到 post detail
+document.querySelectorAll('.feed-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const post = document.getElementById('s-post');
+    if (post) post.scrollIntoView({behavior:'smooth', block:'center'});
+  });
+});
+
+// 9. 我的页面的 list-row 点击跳转
+const meLinks = {
+  '灵魂': 's-soul', '记忆': 's-memory', '技能': 's-skills',
+  '模型路由': 's-routing', '定时任务': 's-cron'
+};
+document.querySelectorAll('#s-me .list-row').forEach(row => {
+  row.addEventListener('click', () => {
+    const label = row.querySelector('.lb')?.firstChild?.textContent?.trim();
+    if (!label) return;
+    for (const [k, v] of Object.entries(meLinks)) {
+      if (label.includes(k)) {
+        document.getElementById(v)?.scrollIntoView({behavior:'smooth', block:'center'});
+        return;
+      }
+    }
+  });
+});
+
+// 10. msg-chips 切换 (通讯列表顶部 chips: 全部/智能体/联系人/群组/付费Bot)
+document.querySelectorAll('.msg-chips').forEach(grp => {
+  grp.querySelectorAll('.mc').forEach(c => {
+    c.addEventListener('click', () => {
+      grp.querySelectorAll('.mc').forEach(x => x.classList.remove('on'));
+      c.classList.add('on');
+    });
+  });
+});
+
+// 11. Mirror 置顶卡 → 跳转到 Mirror Chat
+document.querySelector('.mirror-hero')?.addEventListener('click', () => {
+  document.getElementById('s-chat')?.scrollIntoView({behavior:'smooth', block:'center'});
+});
+
+// 12. 通讯列表 thread 点击跳转
+// 其他联系人/群组 → 跳转到 Human Chat (s-human-chat)
+document.querySelectorAll('.thread').forEach(t => {
+  t.addEventListener('click', () => {
+    const isAI = t.querySelector('.av-th.ai');
+    const target = isAI ? 's-chat' : 's-human-chat';
+    document.getElementById(target)?.scrollIntoView({behavior:'smooth', block:'center'});
+  });
+});
+
+// 13. share-card 在人际对话中点击 → 跳转到帖子详情
+document.querySelectorAll('.share-card').forEach(c => {
+  c.addEventListener('click', () => {
+    document.getElementById('s-post')?.scrollIntoView({behavior:'smooth', block:'center'});
+  });
+});
+
+// 14. share-sheet 取消按钮 → 跳回帖子
+document.querySelectorAll('.share-cancel, .sheet-dim').forEach(el => {
+  el.addEventListener('click', () => {
+    document.getElementById('s-post')?.scrollIntoView({behavior:'smooth', block:'center'});
+  });
+});
+
+// 15. 帖子详情里的"立即解锁"和"邀请返佣"按钮 → 反馈点击
+document.querySelectorAll('.paywall .btn-buy, .paywall .btn-gift, .affiliate, .try-bot .b-cta').forEach(el => {
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    el.style.transform = 'scale(0.97)';
+    setTimeout(() => el.style.transform = '', 150);
+  });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>mirror · Android 下载</title>
+  <style>
+    :root {
+      --bg: #f6f5f2;
+      --text: #1a1916;
+      --accent: #5b47e8;
+      --border: #e8e6e1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      max-width: 400px;
+      width: 100%;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px;
+      text-align: center;
+      box-shadow: 0 12px 40px rgba(26, 25, 22, 0.06);
+    }
+    .sigil {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 20px;
+      border-radius: 16px;
+      background: var(--text);
+      display: grid;
+      place-items: center;
+    }
+    .sigil svg { width: 36px; height: 36px; color: #fff; }
+    h1 { font-size: 28px; font-weight: 500; letter-spacing: -0.02em; }
+    .sub { margin-top: 8px; font-size: 13px; color: #5c5a54; line-height: 1.6; }
+    #qrcode { margin: 28px auto 8px; display: inline-block; }
+    .btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 28px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .hint { margin-top: 16px; font-size: 11px; color: #9b988f; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="sigil">
+      <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <ellipse cx="16" cy="12.5" rx="9.5" ry="10.5" stroke="currentColor" stroke-width="1.75"/>
+        <ellipse cx="16" cy="12.5" rx="7.2" ry="8.2" fill="currentColor" fill-opacity="0.18"/>
+        <path d="M12.5 9.5c2-2.8 5.2-3.2 7.8-1.6" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" opacity="0.55"/>
+        <path d="M13.2 8.2l3.2 9.2" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.42"/>
+        <path d="M16 23.2v5.2" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/>
+        <circle cx="16" cy="29.8" r="2.1" stroke="currentColor" stroke-width="1.6"/>
+      </svg>
+    </div>
+    <h1>mirror</h1>
+    <p class="sub">扫码下载 Android 安装包<br/>安装后请允许「未知来源」</p>
+    <div id="qrcode"></div>
+    <a class="btn" id="download" href="mirror.apk">直接下载 APK</a>
+    <p class="hint" id="apk-url"></p>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script>
+    (function () {
+      var apkUrl = new URL('mirror.apk', window.location.href).href;
+      document.getElementById('download').href = apkUrl;
+      document.getElementById('apk-url').textContent = apkUrl;
+      new QRCode(document.getElementById('qrcode'), {
+        text: apkUrl,
+        width: 200,
+        height: 200,
+        colorDark: '#1a1916',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    })();
+  </script>
+</body>
+</html>

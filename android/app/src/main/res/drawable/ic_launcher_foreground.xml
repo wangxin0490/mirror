@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mirror sigil — 对齐 lib/widgets/mirror_icon.dart / index.html SVG -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="22"
+        android:translateY="22"
+        android:scaleX="2"
+        android:scaleY="2">
+        <path
+            android:fillColor="#2EFFFFFF"
+            android:pathData="M16,12.5m-7.2,0a7.2,8.2 0,1 1,14.4 0a7.2,8.2 0,1 1,-14.4 0" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="1.75"
+            android:strokeLineCap="round"
+            android:pathData="M16,12.5m-9.5,0a9.5,10.5 0,1 1,19 0a9.5,10.5 0,1 1,-19 0" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#8CFFFFFF"
+            android:strokeWidth="1.35"
+            android:strokeLineCap="round"
+            android:pathData="M12.5,9.5c2,-2.8 5.2,-3.2 7.8,-1.6" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#6BFFFFFF"
+            android:strokeWidth="1.5"
+            android:strokeLineCap="round"
+            android:pathData="M13.2,8.2L16.4,17.4" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="1.85"
+            android:strokeLineCap="round"
+            android:pathData="M16,23.2L16,28.4" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="1.6"
+            android:pathData="M16,29.8m-2.1,0a2.1,2.1 0,1 1,4.2 0a2.1,2.1 0,1 1,-4.2 0" />
+    </group>
+</vector>

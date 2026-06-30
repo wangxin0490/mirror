@@ -1,0 +1,13 @@
+{
+  "default": "344",
+  "sdks": {
+    "344": {
+      "path": "C:\\Users\\Lenovo\\dev\\flutter",
+      "label": "Flutter 3.44.1 stable (Mirror default, Dart 3.12)"
+    },
+    "322": {
+      "path": "C:\\Users\\Lenovo\\flutter",
+      "label": "Flutter 3.22.3 legacy"
+    }
+  }
+}
