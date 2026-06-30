@@ -58,6 +58,9 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Disable Swift Package Manager (plugin compatibility)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Flutter pub get
         run: flutter pub get
 
@@ -96,59 +99,15 @@ jobs:
           echo "profile_uuid=$PROFILE_UUID" >> "$GITHUB_OUTPUT"
           echo "Installed profile: $PROFILE_NAME ($PROFILE_UUID)"
 
-      - name: Configure Xcode manual signing (Release)
+      - name: Apply provisioning profile UUID to Xcode project
         env:
-          TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
-          PROFILE_NAME: ${{ steps.signing.outputs.profile_name }}
+          PROFILE_UUID: ${{ steps.signing.outputs.profile_uuid }}
         run: |
           set -euo pipefail
-          python3 <<'PY'
-          import pathlib
-          import os
-
-          team = os.environ["TEAM_ID"]
-          profile = os.environ["PROFILE_NAME"]
-          path = pathlib.Path("ios/Runner.xcodeproj/project.pbxproj")
-          text = path.read_text()
-
-          marker = "97C147071CF9000F007C117D /* Release */ = {"
-          start = text.find(marker)
-          if start < 0:
-              raise SystemExit("Runner Release build configuration not found")
-
-          settings_key = "buildSettings = {"
-          settings_start = text.find(settings_key, start)
-          settings_end = text.find("};", settings_start)
-          block = text[settings_start:settings_end]
-
-          additions = []
-          if "DEVELOPMENT_TEAM" not in block:
-              additions.append(f"\t\t\t\tDEVELOPMENT_TEAM = {team};")
-          if "CODE_SIGN_STYLE = Manual" not in block:
-              additions.append("\t\t\t\tCODE_SIGN_STYLE = Manual;")
-          if 'CODE_SIGN_IDENTITY = "Apple Distribution"' not in block and \
-             '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution"' not in block:
-              additions.append('\t\t\t\t"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";')
-          if "PROVISIONING_PROFILE_SPECIFIER" not in block:
-              additions.append(f'\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"{profile}\";')
-
-          if additions:
-              anchor = "PRODUCT_BUNDLE_IDENTIFIER = com.mirror.mirrorMobile;"
-              insert_at = text.find(anchor, settings_start)
-              if insert_at < 0:
-                  raise SystemExit("Bundle identifier line not found in Release config")
-              line_end = text.find("\n", insert_at)
-              text = (
-                  text[: line_end + 1]
-                  + "\n".join(additions)
-                  + "\n"
-                  + text[line_end + 1 :]
-              )
-              path.write_text(text)
-              print("Patched Release signing settings.")
-          else:
-              print("Release signing settings already present.")
-          PY
+          PBXPROJ="ios/Runner.xcodeproj/project.pbxproj"
+          sed -i.bak "s/REPLACE_ME_PROVISIONING_UUID/${PROFILE_UUID}/g" "$PBXPROJ"
+          rm -f "${PBXPROJ}.bak"
+          grep "PROVISIONING_PROFILE = ${PROFILE_UUID}" "$PBXPROJ"
 
       - name: Create ExportOptions.plist
         env:
