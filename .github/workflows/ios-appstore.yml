@@ -44,7 +44,6 @@ jobs:
     timeout-minutes: 90
     env:
       BUNDLE_ID: com.mirror.mirrorMobile
-      PROFILE_NAME: mirror
       API_BASE: ${{ inputs.api_base || github.event.inputs.api_base || vars.API_BASE || 'http://115.159.46.108:8100' }}
       BUILD_NUMBER: ${{ inputs.build_number || github.event.inputs.build_number || '' }}
 
@@ -120,84 +119,79 @@ jobs:
         env:
           BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
         run: |
+          set -euo pipefail
           PP_PATH=$RUNNER_TEMP/build_pp_appstore.mobileprovision
           echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o "$PP_PATH"
 
-          PP_UUID=$(security cms -D -i "$PP_PATH" | plutil -extract UUID raw -)
-          PP_NAME=$(security cms -D -i "$PP_PATH" | plutil -extract Name raw -)
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$PP_UUID.mobileprovision"
-          echo "PP_UUID=$PP_UUID" >> "$GITHUB_ENV"
-          echo "Installed App Store profile: $PP_NAME ($PP_UUID)"
-          if [ "$PP_NAME" != "mirror" ]; then
-            echo "::warning::Profile name is '$PP_NAME', expected 'mirror'. Update ios/ExportOptions.appstore.plist if needed."
+          PP_XML="$(security cms -D -i "$PP_PATH")"
+          PP_PLIST="$RUNNER_TEMP/profile.plist"
+          printf '%s' "$PP_XML" > "$PP_PLIST"
+
+          PP_UUID="$(/usr/libexec/PlistBuddy -c 'Print UUID' "$PP_PLIST")"
+          PP_NAME="$(/usr/libexec/PlistBuddy -c 'Print Name' "$PP_PLIST")"
+
+          TEAM_ID=""
+          for key in 'TeamIdentifier:0' 'TeamIdentifier.0' 'Entitlements:com.apple.developer.team-identifier'; do
+            TEAM_ID="$(/usr/libexec/PlistBuddy -c "Print ${key}" "$PP_PLIST" 2>/dev/null || true)"
+            if [ -n "$TEAM_ID" ]; then
+              break
+            fi
+          done
+          if [ -z "$TEAM_ID" ]; then
+            APP_ID="$(/usr/libexec/PlistBuddy -c 'Print Entitlements:application-identifier' "$PP_PLIST" 2>/dev/null || true)"
+            if [ -n "$APP_ID" ] && [[ "$APP_ID" == *.* ]]; then
+              TEAM_ID="${APP_ID%%.*}"
+            fi
+          fi
+          if [ -z "$TEAM_ID" ]; then
+            TEAM_ID="${{ secrets.IOS_DEVELOPMENT_TEAM }}"
+          fi
+          if [ -z "$TEAM_ID" ]; then
+            TEAM_ID="U8443M3MV7"
           fi
 
-      - name: Configure manual code signing (App Store)
-        env:
-          IOS_TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
-          PROFILE_NAME: mirror
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$PP_UUID.mobileprovision"
+
+          echo "PP_UUID=$PP_UUID" >> "$GITHUB_ENV"
+          echo "PP_NAME=$PP_NAME" >> "$GITHUB_ENV"
+          echo "TEAM_ID=$TEAM_ID" >> "$GITHUB_ENV"
+          echo "Installed App Store profile: $PP_NAME ($PP_UUID), team: $TEAM_ID"
+
+      - name: Apply provisioning profile UUID to Xcode project
         run: |
-          export IOS_TEAM_ID="${IOS_TEAM_ID:-U8443M3MV7}"
-          python3 <<'PY'
-          import os
-          import re
-          from pathlib import Path
+          set -euo pipefail
+          PBXPROJ="ios/Runner.xcodeproj/project.pbxproj"
+          sed -i.bak "s/REPLACE_ME_PROVISIONING_UUID/${PP_UUID}/g" "$PBXPROJ"
+          sed -i.bak '/PROVISIONING_PROFILE_SPECIFIER = /d' "$PBXPROJ"
+          rm -f "${PBXPROJ}.bak"
+          grep "PROVISIONING_PROFILE = ${PP_UUID}" "$PBXPROJ"
 
-          team_id = os.environ["IOS_TEAM_ID"]
-          profile = os.environ.get("PROFILE_NAME", "mirror")
-          runner_bundle = "com.mirror.mirrorMobile"
-          pp_uuid = os.environ.get("PP_UUID", "")
-          pbx = Path("ios/Runner.xcodeproj/project.pbxproj")
-          text = pbx.read_text(encoding="utf-8")
-
-          text = text.replace("CODE_SIGN_STYLE = Automatic;", "CODE_SIGN_STYLE = Manual;")
-          text = text.replace(
-              '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";',
-              '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";',
-          )
-          text = text.replace(
-              '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";',
-              '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";',
-          )
-          if pp_uuid:
-              text = re.sub(
-                  r"PROVISIONING_PROFILE = [^;]+;",
-                  f"PROVISIONING_PROFILE = {pp_uuid};",
-                  text,
-              )
-              text = re.sub(
-                  r"PROVISIONING_PROFILE_SPECIFIER = [^;]+;",
-                  f"PROVISIONING_PROFILE_SPECIFIER = {profile};",
-                  text,
-              )
-
-          bundle_line = re.compile(
-              rf'^(\t+)PRODUCT_BUNDLE_IDENTIFIER = "?{re.escape(runner_bundle)}"?;\n'
-              rf'(?!\1DEVELOPMENT_TEAM = )',
-              re.MULTILINE,
-          )
-
-          def inject_signing(match: re.Match) -> str:
-              indent = match.group(1)
-              line = match.group(0)
-              extra = (
-                  f"{indent}DEVELOPMENT_TEAM = {team_id};\n"
-                  f'{indent}"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";\n'
-                  f"{indent}PROVISIONING_PROFILE_SPECIFIER = {profile};\n"
-              )
-              if pp_uuid:
-                  extra += f"{indent}PROVISIONING_PROFILE = {pp_uuid};\n"
-              return line + extra
-
-          text, count = bundle_line.subn(inject_signing, text)
-          if count == 0:
-              ids = re.findall(r"PRODUCT_BUNDLE_IDENTIFIER = ([^;]+);", text)
-              raise SystemExit(f"Runner bundle id not found. Found: {ids}")
-
-          pbx.write_text(text, encoding="utf-8")
-          print(f"App Store signing configured for {runner_bundle} ({count} configs)")
-          PY
+      - name: Create ExportOptions.appstore.plist
+        run: |
+          set -euo pipefail
+          cat > ios/ExportOptions.appstore.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>teamID</key>
+            <string>${TEAM_ID}</string>
+            <key>uploadSymbols</key>
+            <true/>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>${BUNDLE_ID}</key>
+              <string>${PP_NAME}</string>
+            </dict>
+          </dict>
+          </plist>
+          PLIST
+          echo "ExportOptions profile: ${PP_NAME} (${PP_UUID})"
 
       - name: Build App Store IPA
         run: |
