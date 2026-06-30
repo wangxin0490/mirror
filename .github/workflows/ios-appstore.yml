@@ -1,0 +1,222 @@
+# 可复用工作流：Flutter iOS Release 打包 + 上传 App Store Connect（TestFlight）
+#
+# ── 前置准备（Apple Developer）────────────────────────────────────────
+# 1. Bundle ID：com.mirror.mirrorMobile（与 ios/Runner.xcodeproj 一致）
+# 2. 创建 App Store Distribution 证书（.p12）及对应 App Store 描述文件
+# 3. App Store Connect → 用户和访问 → 集成 → 生成 API 密钥（App Manager 权限）
+#
+# ── GitHub Secrets（Repository secrets）────────────────────────────────
+# IOS_DISTRIBUTION_CERTIFICATE_BASE64   Distribution .p12 的 base64
+# IOS_DISTRIBUTION_CERTIFICATE_PASSWORD .p12 密码
+# IOS_PROVISIONING_PROFILE_BASE64       App Store 描述文件 .mobileprovision 的 base64
+# IOS_KEYCHAIN_PASSWORD                 临时钥匙串密码（任意强随机字符串）
+# IOS_DEVELOPMENT_TEAM                  Apple Team ID（10 位，如 ABCDE12345）
+# APPSTORE_ISSUER_ID                    App Store Connect API Issuer ID
+# APPSTORE_KEY_ID                       API 密钥 Key ID
+# APPSTORE_PRIVATE_KEY                  API 密钥 .p8 全文（含 BEGIN/END 行）
+#
+# ── 可选 GitHub Variables（Repository variables）──────────────────────
+# API_BASE                              默认后端地址（workflow_dispatch 未填时使用）
+#
+# 本地生成 base64 示例（macOS）：
+#   base64 -i cert.p12 | pbcopy
+#   base64 -i profile.mobileprovision | pbcopy
+
+name: iOS App Store
+
+on:
+  workflow_call:
+    inputs:
+      api_base:
+        description: API_BASE for Flutter build
+        type: string
+        required: false
+        default: 'http://115.159.46.108:8100'
+      build_number:
+        description: Override CFBundleVersion build number
+        type: string
+        required: false
+        default: ''
+
+jobs:
+  build-and-upload:
+    name: Build IPA & Upload
+    runs-on: macos-latest
+    timeout-minutes: 90
+    env:
+      BUNDLE_ID: com.mirror.mirrorMobile
+      FLUTTER_VERSION: '3.44.1'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Install Apple certificate & provisioning profile
+        id: signing
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          CERTIFICATE_PATH="$RUNNER_TEMP/build_certificate.p12"
+          PP_PATH="$RUNNER_TEMP/build_pp.mobileprovision"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o "$CERTIFICATE_PATH"
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o "$PP_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+          PP_XML="$(security cms -D -i "$PP_PATH")"
+          PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print UUID' /dev/stdin <<< "$PP_XML")"
+          PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin <<< "$PP_XML")"
+
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$PROFILE_UUID.mobileprovision"
+
+          echo "profile_name=$PROFILE_NAME" >> "$GITHUB_OUTPUT"
+          echo "profile_uuid=$PROFILE_UUID" >> "$GITHUB_OUTPUT"
+          echo "Installed profile: $PROFILE_NAME ($PROFILE_UUID)"
+
+      - name: Configure Xcode manual signing (Release)
+        env:
+          TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
+          PROFILE_NAME: ${{ steps.signing.outputs.profile_name }}
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import pathlib
+          import os
+
+          team = os.environ["TEAM_ID"]
+          profile = os.environ["PROFILE_NAME"]
+          path = pathlib.Path("ios/Runner.xcodeproj/project.pbxproj")
+          text = path.read_text()
+
+          marker = "97C147071CF9000F007C117D /* Release */ = {"
+          start = text.find(marker)
+          if start < 0:
+              raise SystemExit("Runner Release build configuration not found")
+
+          settings_key = "buildSettings = {"
+          settings_start = text.find(settings_key, start)
+          settings_end = text.find("};", settings_start)
+          block = text[settings_start:settings_end]
+
+          additions = []
+          if "DEVELOPMENT_TEAM" not in block:
+              additions.append(f"\t\t\t\tDEVELOPMENT_TEAM = {team};")
+          if "CODE_SIGN_STYLE = Manual" not in block:
+              additions.append("\t\t\t\tCODE_SIGN_STYLE = Manual;")
+          if 'CODE_SIGN_IDENTITY = "Apple Distribution"' not in block and \
+             '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution"' not in block:
+              additions.append('\t\t\t\t"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";')
+          if "PROVISIONING_PROFILE_SPECIFIER" not in block:
+              additions.append(f'\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"{profile}\";')
+
+          if additions:
+              anchor = "PRODUCT_BUNDLE_IDENTIFIER = com.mirror.mirrorMobile;"
+              insert_at = text.find(anchor, settings_start)
+              if insert_at < 0:
+                  raise SystemExit("Bundle identifier line not found in Release config")
+              line_end = text.find("\n", insert_at)
+              text = (
+                  text[: line_end + 1]
+                  + "\n".join(additions)
+                  + "\n"
+                  + text[line_end + 1 :]
+              )
+              path.write_text(text)
+              print("Patched Release signing settings.")
+          else:
+              print("Release signing settings already present.")
+          PY
+
+      - name: Create ExportOptions.plist
+        env:
+          TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
+          PROFILE_NAME: ${{ steps.signing.outputs.profile_name }}
+        run: |
+          set -euo pipefail
+          cat > ios/ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>teamID</key>
+            <string>${TEAM_ID}</string>
+            <key>uploadSymbols</key>
+            <true/>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>${BUNDLE_ID}</key>
+              <string>${PROFILE_NAME}</string>
+            </dict>
+          </dict>
+          </plist>
+          PLIST
+
+      - name: Build IPA
+        run: |
+          set -euo pipefail
+          args=(build ipa --release --export-options-plist=ios/ExportOptions.plist)
+          args+=(--dart-define=API_BASE=${{ inputs.api_base }})
+          if [ -n "${{ inputs.build_number }}" ]; then
+            args+=(--build-number=${{ inputs.build_number }})
+          fi
+          flutter "${args[@]}"
+          ls -la build/ios/ipa/
+
+      - name: Resolve IPA path
+        id: ipa
+        run: |
+          set -euo pipefail
+          ipa_path="$(find build/ios/ipa -maxdepth 1 -name '*.ipa' -print -quit)"
+          if [ -z "$ipa_path" ]; then
+            echo "No IPA found under build/ios/ipa" >&2
+            exit 1
+          fi
+          echo "path=$ipa_path" >> "$GITHUB_OUTPUT"
+          echo "IPA: $ipa_path"
+
+      - name: Upload to App Store Connect
+        uses: apple-actions/upload-testflight-build@v3
+        with:
+          app-path: ${{ steps.ipa.outputs.path }}
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mirror-ios-ipa
+          path: ${{ steps.ipa.outputs.path }}
+          retention-days: 14
+
+      - name: Clean up keychain
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" 2>/dev/null || true

@@ -1,0 +1,37 @@
+# 入口工作流：触发 iOS 打包并上传 App Store Connect
+#
+# 触发方式：
+#   1. 手动：Actions → Main → Run workflow
+#   2. 打 tag：git tag v1.0.0 && git push origin v1.0.0
+#
+# 所需 GitHub Secrets（Repository → Settings → Secrets）见 ios-appstore.yml 顶部注释。
+
+name: Main
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      api_base:
+        description: 'API_BASE（--dart-define）'
+        required: false
+        default: 'http://115.159.46.108:8100'
+      build_number:
+        description: '可选：覆盖 iOS 构建号（CFBundleVersion）'
+        required: false
+        default: ''
+
+concurrency:
+  group: mirror-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios-appstore:
+    name: iOS → App Store Connect
+    uses: ./.github/workflows/ios-appstore.yml
+    with:
+      api_base: ${{ github.event.inputs.api_base || vars.API_BASE || 'http://115.159.46.108:8100' }}
+      build_number: ${{ github.event.inputs.build_number || '' }}
+    secrets: inherit
