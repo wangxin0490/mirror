@@ -22,9 +22,24 @@
 #   base64 -i cert.p12 | pbcopy
 #   base64 -i profile.mobileprovision | pbcopy
 
+# 触发方式：
+#   1. Actions → iOS App Store → Run workflow（本文件）
+#   2. Actions → Main → Run workflow（入口，会调用本文件）
+#   3. git tag v* && git push
+
 name: iOS App Store
 
 on:
+  workflow_dispatch:
+    inputs:
+      api_base:
+        description: 'API_BASE（--dart-define）'
+        required: false
+        default: 'http://115.159.46.108:8100'
+      build_number:
+        description: '可选：覆盖 iOS 构建号（CFBundleVersion）'
+        required: false
+        default: ''
   workflow_call:
     inputs:
       api_base:
@@ -48,6 +63,8 @@ jobs:
       BUNDLE_ID: com.mirror.mirrorMobile
       FLUTTER_VERSION: '3.44.1'
       APPLE_TEAM_ID: U8443M3MV7
+      API_BASE: ${{ inputs.api_base || github.event.inputs.api_base || vars.API_BASE || 'http://115.159.46.108:8100' }}
+      BUILD_NUMBER: ${{ inputs.build_number || github.event.inputs.build_number || '' }}
 
     steps:
       - name: Checkout
@@ -185,9 +202,9 @@ jobs:
         run: |
           set -euo pipefail
           args=(build ipa --release --export-options-plist=ios/ExportOptions.plist)
-          args+=(--dart-define=API_BASE=${{ inputs.api_base }})
-          if [ -n "${{ inputs.build_number }}" ]; then
-            args+=(--build-number=${{ inputs.build_number }})
+          args+=(--dart-define=API_BASE=${API_BASE})
+          if [ -n "${BUILD_NUMBER}" ]; then
+            args+=(--build-number=${BUILD_NUMBER})
           fi
           flutter "${args[@]}"
           ls -la build/ios/ipa/
