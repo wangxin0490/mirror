@@ -1,33 +1,17 @@
-# 可复用工作流：Flutter iOS Release 打包 + 上传 App Store Connect（TestFlight）
-#
-# ── 前置准备（Apple Developer）────────────────────────────────────────
-# 1. Bundle ID：com.mirror.mirrorMobile（与 ios/Runner.xcodeproj 一致）
-# 2. 创建 App Store Distribution 证书（.p12）及对应 App Store 描述文件
-# 3. App Store Connect → 用户和访问 → 集成 → 生成 API 密钥（App Manager 权限）
+# App Store / TestFlight：云端 Mac 打包并上传，Windows 本地无需 Mac。
+# 在 GitHub → Actions →「iOS App Store Upload」→ Run workflow 手动触发。
 #
 # ── GitHub Secrets（Repository secrets）────────────────────────────────
 # IOS_DISTRIBUTION_CERTIFICATE_BASE64   Distribution .p12 的 base64
 # IOS_DISTRIBUTION_CERTIFICATE_PASSWORD .p12 密码
 # IOS_PROVISIONING_PROFILE_BASE64       App Store 描述文件 .mobileprovision 的 base64
 # IOS_KEYCHAIN_PASSWORD                 临时钥匙串密码（任意强随机字符串）
-# IOS_DEVELOPMENT_TEAM                  （可选）Apple Team ID；未配置时从描述文件读取，兜底 U8443M3MV7
+# IOS_DEVELOPMENT_TEAM                  Apple Team ID（默认 U8443M3MV7）
 # APPSTORE_ISSUER_ID                    App Store Connect API Issuer ID
 # APPSTORE_KEY_ID                       API 密钥 Key ID
 # APPSTORE_PRIVATE_KEY                  API 密钥 .p8 全文（含 BEGIN/END 行）
-#
-# ── 可选 GitHub Variables（Repository variables）──────────────────────
-# API_BASE                              默认后端地址（workflow_dispatch 未填时使用）
-#
-# 本地生成 base64 示例（macOS）：
-#   base64 -i cert.p12 | pbcopy
-#   base64 -i profile.mobileprovision | pbcopy
 
-# 触发方式：
-#   1. Actions → iOS App Store → Run workflow（本文件）
-#   2. Actions → Main → Run workflow（入口，会调用本文件）
-#   3. git tag v* && git push
-
-name: iOS App Store
+name: iOS App Store Upload
 
 on:
   workflow_dispatch:
@@ -55,178 +39,189 @@ on:
 
 jobs:
   build-and-upload:
-    name: Build IPA & Upload
-    # App Store 自 2026 起要求 iOS 26 SDK（Xcode 26+）；macos-latest 可能仍为 Xcode 16.4
+    # App Store 自 2026 起要求 iOS 26 SDK（Xcode 26+）；macos-latest 可能仍为 Xcode 16.4。
     runs-on: macos-26
     timeout-minutes: 90
     env:
       BUNDLE_ID: com.mirror.mirrorMobile
-      FLUTTER_VERSION: '3.44.1'
-      APPLE_TEAM_ID: U8443M3MV7
+      PROFILE_NAME: mirror
       API_BASE: ${{ inputs.api_base || github.event.inputs.api_base || vars.API_BASE || 'http://115.159.46.108:8100' }}
       BUILD_NUMBER: ${{ inputs.build_number || github.event.inputs.build_number || '' }}
 
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Select Xcode 26 (iOS 26 SDK)
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '26.5'
-
-      - name: Print Xcode / iOS SDK
+      - name: Select Xcode 26
         run: |
+          if [ -d /Applications/Xcode_26.5.app ]; then
+            sudo xcode-select -s /Applications/Xcode_26.5.app/Contents/Developer
+          elif [ -d /Applications/Xcode_26.4.app ]; then
+            sudo xcode-select -s /Applications/Xcode_26.4.app/Contents/Developer
+          else
+            ls /Applications | grep -i Xcode
+            echo "::error::No Xcode 26 found on runner"
+            exit 1
+          fi
           xcodebuild -version
-          xcrun --sdk iphoneos --show-sdk-version
+          xcodebuild -showsdks | grep iphoneos || true
 
-      - name: Set up Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
+          flutter-version: '3.44.3'
+          channel: 'stable'
           cache: true
 
-      - name: Disable Swift Package Manager (plugin compatibility)
+      - name: Disable Swift Package Manager
         run: flutter config --no-enable-swift-package-manager
 
-      - name: Flutter pub get
+      - name: Install Flutter dependencies
         run: flutter pub get
 
-      - name: Install Apple certificate & provisioning profile
-        id: signing
+      - name: Force iOS Deployment Target 15.0
+        run: |
+          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = .*;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' ios/Runner.xcodeproj/project.pbxproj
+          if [ -f "ios/Podfile" ]; then
+            sed -i '' "s/platform :ios, '.*'/platform :ios, '15.0'/g" ios/Podfile
+            sed -i '' "s/IPHONEOS_DEPLOYMENT_TARGET'\] = '.*'/IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'/g" ios/Podfile
+          fi
+          if [ -f "ios/Flutter/AppFrameworkInfo.plist" ]; then
+            sed -i '' 's/<string>1[0-4]\.0<\/string>/<string>15.0<\/string>/g' ios/Flutter/AppFrameworkInfo.plist
+            sed -i '' 's/<string>9\.0<\/string>/<string>15.0<\/string>/g' ios/Flutter/AppFrameworkInfo.plist
+          fi
+
+      - name: Install CocoaPods dependencies
+        run: |
+          flutter build ios --config-only --release
+          cd ios
+          pod install --repo-update
+
+      - name: Install Apple certificate
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
-          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
           KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
         run: |
-          set -euo pipefail
-
-          CERTIFICATE_PATH="$RUNNER_TEMP/build_certificate.p12"
-          PP_PATH="$RUNNER_TEMP/build_pp.mobileprovision"
-          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o "$CERTIFICATE_PATH"
-          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o "$PP_PATH"
 
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
           security import "$CERTIFICATE_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
 
-          PP_XML="$(security cms -D -i "$PP_PATH")"
-          PP_PLIST="$RUNNER_TEMP/profile.plist"
-          printf '%s' "$PP_XML" > "$PP_PLIST"
+      - name: Install App Store provisioning profile
+        env:
+          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          PP_PATH=$RUNNER_TEMP/build_pp_appstore.mobileprovision
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o "$PP_PATH"
 
-          PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print UUID' "$PP_PLIST")"
-          PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print Name' "$PP_PLIST")"
-
-          TEAM_ID=""
-          for key in 'TeamIdentifier:0' 'TeamIdentifier.0' 'Entitlements:com.apple.developer.team-identifier'; do
-            TEAM_ID="$(/usr/libexec/PlistBuddy -c "Print ${key}" "$PP_PLIST" 2>/dev/null || true)"
-            if [ -n "$TEAM_ID" ]; then
-              break
-            fi
-          done
-          if [ -z "$TEAM_ID" ]; then
-            APP_ID="$(/usr/libexec/PlistBuddy -c 'Print Entitlements:application-identifier' "$PP_PLIST" 2>/dev/null || true)"
-            if [ -n "$APP_ID" ] && [[ "$APP_ID" == *.* ]]; then
-              TEAM_ID="${APP_ID%%.*}"
-            fi
-          fi
-          if [ -z "$TEAM_ID" ]; then
-            TEAM_ID="${{ secrets.IOS_DEVELOPMENT_TEAM }}"
-          fi
-          if [ -z "$TEAM_ID" ]; then
-            TEAM_ID="${APPLE_TEAM_ID}"
-          fi
-          if [ -z "$TEAM_ID" ]; then
-            echo "Could not resolve Team ID from profile or secrets" >&2
-            exit 1
-          fi
-
+          PP_UUID=$(security cms -D -i "$PP_PATH" | plutil -extract UUID raw -)
+          PP_NAME=$(security cms -D -i "$PP_PATH" | plutil -extract Name raw -)
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$PROFILE_UUID.mobileprovision"
-
-          echo "profile_name=$PROFILE_NAME" >> "$GITHUB_OUTPUT"
-          echo "profile_uuid=$PROFILE_UUID" >> "$GITHUB_OUTPUT"
-          echo "team_id=$TEAM_ID" >> "$GITHUB_OUTPUT"
-          echo "Installed profile: $PROFILE_NAME ($PROFILE_UUID), team: $TEAM_ID"
-
-      - name: Apply provisioning profile UUID to Xcode project
-        env:
-          PROFILE_UUID: ${{ steps.signing.outputs.profile_uuid }}
-        run: |
-          set -euo pipefail
-          PBXPROJ="ios/Runner.xcodeproj/project.pbxproj"
-          sed -i.bak "s/REPLACE_ME_PROVISIONING_UUID/${PROFILE_UUID}/g" "$PBXPROJ"
-          rm -f "${PBXPROJ}.bak"
-          grep "PROVISIONING_PROFILE = ${PROFILE_UUID}" "$PBXPROJ"
-
-      - name: Create ExportOptions.plist
-        env:
-          TEAM_ID: ${{ steps.signing.outputs.team_id }}
-          PROFILE_NAME: ${{ steps.signing.outputs.profile_name }}
-        run: |
-          set -euo pipefail
-          if [ -z "${TEAM_ID}" ]; then
-            echo "teamID is empty; set IOS_DEVELOPMENT_TEAM secret or fix provisioning profile" >&2
-            exit 1
+          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$PP_UUID.mobileprovision"
+          echo "PP_UUID=$PP_UUID" >> "$GITHUB_ENV"
+          echo "Installed App Store profile: $PP_NAME ($PP_UUID)"
+          if [ "$PP_NAME" != "mirror" ]; then
+            echo "::warning::Profile name is '$PP_NAME', expected 'mirror'. Update ios/ExportOptions.appstore.plist if needed."
           fi
-          cat > ios/ExportOptions.plist <<PLIST
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store-connect</string>
-            <key>teamID</key>
-            <string>${TEAM_ID}</string>
-            <key>uploadSymbols</key>
-            <true/>
-            <key>signingStyle</key>
-            <string>manual</string>
-            <key>provisioningProfiles</key>
-            <dict>
-              <key>${BUNDLE_ID}</key>
-              <string>${PROFILE_NAME}</string>
-            </dict>
-          </dict>
-          </plist>
-          PLIST
 
-      - name: Build IPA
+      - name: Configure manual code signing (App Store)
+        env:
+          IOS_TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
+          PROFILE_NAME: mirror
         run: |
-          set -euo pipefail
-          args=(build ipa --release --export-options-plist=ios/ExportOptions.plist)
-          args+=(--dart-define=API_BASE=${API_BASE})
-          if [ -n "${BUILD_NUMBER}" ]; then
-            args+=(--build-number=${BUILD_NUMBER})
+          export IOS_TEAM_ID="${IOS_TEAM_ID:-U8443M3MV7}"
+          python3 <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          team_id = os.environ["IOS_TEAM_ID"]
+          profile = os.environ.get("PROFILE_NAME", "mirror")
+          runner_bundle = "com.mirror.mirrorMobile"
+          pp_uuid = os.environ.get("PP_UUID", "")
+          pbx = Path("ios/Runner.xcodeproj/project.pbxproj")
+          text = pbx.read_text(encoding="utf-8")
+
+          text = text.replace("CODE_SIGN_STYLE = Automatic;", "CODE_SIGN_STYLE = Manual;")
+          text = text.replace(
+              '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";',
+              '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";',
+          )
+          text = text.replace(
+              '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";',
+              '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";',
+          )
+          if pp_uuid:
+              text = re.sub(
+                  r"PROVISIONING_PROFILE = [^;]+;",
+                  f"PROVISIONING_PROFILE = {pp_uuid};",
+                  text,
+              )
+              text = re.sub(
+                  r"PROVISIONING_PROFILE_SPECIFIER = [^;]+;",
+                  f"PROVISIONING_PROFILE_SPECIFIER = {profile};",
+                  text,
+              )
+
+          bundle_line = re.compile(
+              rf'^(\t+)PRODUCT_BUNDLE_IDENTIFIER = "?{re.escape(runner_bundle)}"?;\n'
+              rf'(?!\1DEVELOPMENT_TEAM = )',
+              re.MULTILINE,
+          )
+
+          def inject_signing(match: re.Match) -> str:
+              indent = match.group(1)
+              line = match.group(0)
+              extra = (
+                  f"{indent}DEVELOPMENT_TEAM = {team_id};\n"
+                  f'{indent}"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";\n'
+                  f"{indent}PROVISIONING_PROFILE_SPECIFIER = {profile};\n"
+              )
+              if pp_uuid:
+                  extra += f"{indent}PROVISIONING_PROFILE = {pp_uuid};\n"
+              return line + extra
+
+          text, count = bundle_line.subn(inject_signing, text)
+          if count == 0:
+              ids = re.findall(r"PRODUCT_BUNDLE_IDENTIFIER = ([^;]+);", text)
+              raise SystemExit(f"Runner bundle id not found. Found: {ids}")
+
+          pbx.write_text(text, encoding="utf-8")
+          print(f"App Store signing configured for {runner_bundle} ({count} configs)")
+          PY
+
+      - name: Build App Store IPA
+        run: |
+          args=(build ipa --release --export-options-plist=ios/ExportOptions.appstore.plist)
+          args+=(--dart-define=API_BASE="$API_BASE")
+          if [ -n "$BUILD_NUMBER" ]; then
+            args+=(--build-number="$BUILD_NUMBER")
           fi
           flutter "${args[@]}"
-          ls -la build/ios/ipa/
 
       - name: Resolve IPA path
-        id: ipa
         run: |
-          set -euo pipefail
-          ipa_path="$(find build/ios/ipa -maxdepth 1 -name '*.ipa' -print -quit)"
-          if [ -z "$ipa_path" ]; then
-            echo "No IPA found under build/ios/ipa" >&2
+          IPA_PATH=$(find build/ios/ipa -name "*.ipa" | head -1)
+          if [ -z "$IPA_PATH" ]; then
+            echo "No IPA found under build/ios/ipa"
             exit 1
           fi
-          echo "path=$ipa_path" >> "$GITHUB_OUTPUT"
-          echo "IPA: $ipa_path"
+          echo "IPA_PATH=$IPA_PATH" >> "$GITHUB_ENV"
+          ls -lh "$IPA_PATH"
 
       - name: Verify IPA bundle id
         run: |
-          set -euo pipefail
-          ipa_path="${{ steps.ipa.outputs.path }}"
           tmpdir="$(mktemp -d)"
-          unzip -q "$ipa_path" -d "$tmpdir"
+          unzip -q "$IPA_PATH" -d "$tmpdir"
           app_plist="$(find "$tmpdir/Payload" -maxdepth 2 -name Info.plist | head -1)"
           bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app_plist")"
           version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app_plist")"
@@ -236,11 +231,10 @@ jobs:
           test "$bundle_id" = "$BUNDLE_ID"
           rm -rf "$tmpdir"
 
-      - name: Upload to App Store Connect
-        id: asc_upload
+      - name: Upload to TestFlight (App Store Connect)
         uses: apple-actions/upload-testflight-build@v3
         with:
-          app-path: ${{ steps.ipa.outputs.path }}
+          app-path: ${{ env.IPA_PATH }}
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
@@ -252,13 +246,12 @@ jobs:
           echo "  1. App Store Connect home → pending agreements (yellow banner)"
           echo "  2. https://appstoreconnect.apple.com/activity"
           echo "  3. Apple Developer account email for Invalid Binary notices"
-          echo "Upload step finished. Builds can take 5-30 min to appear in TestFlight."
 
-      - name: Upload IPA artifact
+      - name: Upload IPA artifact (backup download)
         uses: actions/upload-artifact@v4
         with:
-          name: mirror-ios-ipa
-          path: ${{ steps.ipa.outputs.path }}
+          name: MirrorAppStoreIpa
+          path: build/ios/ipa/*.ipa
           retention-days: 14
 
       - name: Clean up keychain
