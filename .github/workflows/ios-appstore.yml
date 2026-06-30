@@ -101,11 +101,34 @@ jobs:
           security list-keychain -d user -s "$KEYCHAIN_PATH"
 
           PP_XML="$(security cms -D -i "$PP_PATH")"
-          PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print UUID' /dev/stdin <<< "$PP_XML")"
-          PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin <<< "$PP_XML")"
-          TEAM_ID="$(/usr/libexec/PlistBuddy -c 'Print TeamIdentifier.0' /dev/stdin <<< "$PP_XML")"
+          PP_PLIST="$RUNNER_TEMP/profile.plist"
+          printf '%s' "$PP_XML" > "$PP_PLIST"
+
+          PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print UUID' "$PP_PLIST")"
+          PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print Name' "$PP_PLIST")"
+
+          TEAM_ID=""
+          for key in 'TeamIdentifier:0' 'TeamIdentifier.0' 'Entitlements:com.apple.developer.team-identifier'; do
+            TEAM_ID="$(/usr/libexec/PlistBuddy -c "Print ${key}" "$PP_PLIST" 2>/dev/null || true)"
+            if [ -n "$TEAM_ID" ]; then
+              break
+            fi
+          done
+          if [ -z "$TEAM_ID" ]; then
+            APP_ID="$(/usr/libexec/PlistBuddy -c 'Print Entitlements:application-identifier' "$PP_PLIST" 2>/dev/null || true)"
+            if [ -n "$APP_ID" ] && [[ "$APP_ID" == *.* ]]; then
+              TEAM_ID="${APP_ID%%.*}"
+            fi
+          fi
+          if [ -z "$TEAM_ID" ]; then
+            TEAM_ID="${{ secrets.IOS_DEVELOPMENT_TEAM }}"
+          fi
           if [ -z "$TEAM_ID" ]; then
             TEAM_ID="${APPLE_TEAM_ID}"
+          fi
+          if [ -z "$TEAM_ID" ]; then
+            echo "Could not resolve Team ID from profile or secrets" >&2
+            exit 1
           fi
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
