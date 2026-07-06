@@ -31,7 +31,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>用于拍摄照片并发送到聊天、发帖或上传至知识库</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>用于语音导入与按住说话录音</string>
+	<string>MirrorX 需要访问麦克风，以便您在 AI 对话中按住说话进行语音输入，以及在「会议纪要」功能中录制会议音频并生成文字纪要。例如：在聊天界面按住麦克风按钮说话，或在会议页面开始录音。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>用于在聊天、发帖、知识库和个人资料中选择并上传图片</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

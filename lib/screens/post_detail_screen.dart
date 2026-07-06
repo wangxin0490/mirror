@@ -24,6 +24,7 @@ import 'mirror_compose_comments.dart';
 import 'post_detail_data.dart';
 import '../state/kb_store.dart';
 import '../state/kb_subscription_store.dart';
+import '../widgets/moderation_action_sheet.dart';
 
 /// post-details-4.html 帖子详情（轮播 + 正文 + post-actions-bar）
 class PostDetailScreen extends StatefulWidget {
@@ -295,12 +296,46 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
   }
 
+  Future<void> _showPostModeration() async {
+    final d = widget.data;
+    final authorId = d.author.userId;
+    await showModerationActionSheet(
+      context,
+      title: '帖子操作',
+      userId: authorId > 0 ? authorId : null,
+      userName: d.author.name,
+      targetType: 'post',
+      targetId: '${widget.postId ?? 0}',
+      contentPreview: d.title,
+      onBlocked: widget.onBack,
+    );
+  }
+
+  Future<void> _reportComment(CommentRowView row) async {
+    await showModerationActionSheet(
+      context,
+      title: '评论操作',
+      userId: row.userId > 0 ? row.userId : null,
+      userName: row.name,
+      targetType: 'comment',
+      targetId: '${row.id}',
+      contentPreview: row.text,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final d = widget.data;
     return Column(
       children: [
-        PostDetailHead(data: d, followed: _followed, onBack: widget.onBack, onFollowToggle: _toggleFollow, onAuthorTap: widget.onAuthorTap),
+        PostDetailHead(
+          data: d,
+          followed: _followed,
+          onBack: widget.onBack,
+          onFollowToggle: _toggleFollow,
+          onAuthorTap: widget.onAuthorTap,
+          onMore: ApiConfig.isLoggedIn ? _showPostModeration : null,
+        ),
         Expanded(
           child: MirrorScrollView(
             padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
@@ -352,6 +387,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                           parentId: parentId > 0 ? parentId : null,
                           replyUserId: userId > 0 ? userId : null,
                         ),
+                        onReportComment: _reportComment,
                         rows: widget.postId != null ? _commentRows : null,
                         commentsLoaded: _commentsLoaded,
                       ),
@@ -592,6 +628,7 @@ class _CommentsSectionInline extends StatelessWidget {
     required this.liked,
     required this.onLikeToggle,
     required this.onReply,
+    this.onReportComment,
     this.rows,
     this.commentsLoaded,
   });
@@ -600,6 +637,7 @@ class _CommentsSectionInline extends StatelessWidget {
   final Set<int> liked;
   final void Function(int id) onLikeToggle;
   final void Function(String name, {int parentId, int userId}) onReply;
+  final void Function(CommentRowView row)? onReportComment;
   final List<CommentRowView>? rows;
   final bool? commentsLoaded;
 
@@ -621,6 +659,7 @@ class _CommentsSectionInline extends StatelessWidget {
           liked: liked,
           onLikeToggle: onLikeToggle,
           onReply: onReply,
+          onReportComment: onReportComment,
           rows: rows,
           commentsLoaded: commentsLoaded,
         ),
@@ -758,6 +797,7 @@ class _PostScreenState extends State<PostScreen> {
         sub: a.subtitle.isNotEmpty ? a.subtitle : '@${a.handle}',
         avatarUrl: a.avatarUrl,
         followed: dto.followed || dto.actions.bookmarked,
+        userId: a.userId,
       ),
       slides: slides,
       intervalMs: 4000,
@@ -821,6 +861,7 @@ class PostDetailHead extends StatelessWidget {
     this.onBack,
     this.onFollowToggle,
     this.onAuthorTap,
+    this.onMore,
   });
 
   final PostDetailData data;
@@ -828,6 +869,7 @@ class PostDetailHead extends StatelessWidget {
   final VoidCallback? onBack;
   final VoidCallback? onFollowToggle;
   final VoidCallback? onAuthorTap;
+  final VoidCallback? onMore;
 
   @override
   Widget build(BuildContext context) {
@@ -867,6 +909,14 @@ class PostDetailHead extends StatelessWidget {
             ),
           ),
           const Spacer(),
+          if (onMore != null)
+            IconButton(
+              icon: const Icon(Icons.more_horiz, size: 20, color: MirrorColors.text3),
+              onPressed: onMore,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            ),
+          if (onMore != null) const SizedBox(width: 4),
           GestureDetector(
             onTap: onFollowToggle,
             child: Container(

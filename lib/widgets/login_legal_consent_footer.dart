@@ -6,9 +6,11 @@ import '../screens/legal_document_screen.dart';
 import '../theme/mirror_colors.dart';
 import '../theme/mirror_theme.dart';
 
-/// 登录前法律告知：登录即表示同意用户协议与隐私政策。
+/// 登录前法律告知：登录/注册即表示同意用户协议与隐私政策。
 class LoginLegalConsentFooter extends StatelessWidget {
-  const LoginLegalConsentFooter({super.key});
+  const LoginLegalConsentFooter({super.key, this.actionPrefix = '登录'});
+
+  final String actionPrefix;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +23,7 @@ class LoginLegalConsentFooter extends StatelessWidget {
         text: TextSpan(
           style: base,
           children: [
-            const TextSpan(text: '登录即表示同意'),
+            TextSpan(text: '$actionPrefix即表示同意'),
             TextSpan(
               text: '《用户协议》',
               style: link,

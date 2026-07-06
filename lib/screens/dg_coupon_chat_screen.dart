@@ -12,6 +12,7 @@ import '../widgets/mirror_assistant_identity.dart';
 import '../widgets/mirror_pressable.dart';
 import '../widgets/phone_components.dart';
 import '../widgets/simple_chat_composer.dart';
+import '../widgets/ai_data_consent_dialog.dart';
 
 /// 石化优惠券（dg-coupon renderer）聊天页。
 class DgCouponChatScreen extends StatefulWidget {
@@ -213,6 +214,8 @@ class _DgCouponChatScreenState extends State<DgCouponChatScreen> {
     if (text.isEmpty || _sending) return;
     final conv = await _ensureConversation();
     if (conv == null || conv.conversationId <= 0) return;
+    final consented = await ensureAiDataConsent(context);
+    if (!consented || !mounted) return;
     if (overrideText == null) _input.clear();
     setState(() {
       _sending = true;

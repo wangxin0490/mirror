@@ -8,6 +8,7 @@ import '../config/api_config.dart';
 import '../models/chat_models.dart';
 import '../models/contacts_models.dart';
 import '../state/dm_thread_store.dart';
+import '../state/block_store.dart';
 import '../data/mirror_authors.dart';
 import '../utils/dm_share_message.dart';
 import '../theme/mirror_colors.dart';
@@ -160,7 +161,14 @@ class _FeedScreenState extends State<FeedScreen>
     }
     final dtos = await FeedApi.fetchPosts(tab: _tabParam(_pill));
     if (!mounted) return;
-    final apiCards = dtos?.map((e) => e.toFeedCardData()).toList() ?? [];
+    var apiCards = dtos?.map((e) => e.toFeedCardData()).toList() ?? [];
+    await BlockStore.instance.ensureLoaded();
+    apiCards = apiCards
+        .where((c) {
+          final uid = c.authorUserId;
+          return uid == null || uid <= 0 || !BlockStore.instance.isBlocked(uid);
+        })
+        .toList();
     final cards = apiCards.isEmpty ? MirrorFeedData.forPill(_pill) : apiCards;
     _pillCache[_pill] = cards;
     setState(() {

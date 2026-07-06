@@ -19,7 +19,10 @@ import '../screens/meeting/meeting_detail_screen.dart';
 import '../screens/mirror_compose_comments.dart';
 import '../screens/post_detail_data.dart';
 import '../screens/author_profile_screen.dart';
+import '../screens/account_settings_screen.dart';
 import '../screens/token_usage_detail_screen.dart';
+import '../services/ai_consent_store.dart';
+import '../state/block_store.dart';
 import '../data/mirror_authors.dart';
 import '../state/dm_thread_store.dart';
 import '../services/meeting_draft_store.dart';
@@ -152,6 +155,7 @@ class _MirrorPrototypeState extends State<MirrorPrototype> {
 
   Future<void> _restoreSession() async {
     await ApiConfig.loadFromStorage();
+    unawaited(BlockStore.instance.ensureLoaded());
     if (!ApiConfig.isLoggedIn) {
       if (mounted) setState(() => _bootstrapping = false);
       return;
@@ -225,6 +229,7 @@ class _MirrorPrototypeState extends State<MirrorPrototype> {
   Future<void> _logout() async {
     await AuthApi.logout();
     if (!mounted) return;
+    await BlockStore.instance.clear();
     ChatInboxWs.instance.disconnect(reconnect: false);
     DmThreadStore.instance.clear();
     _stopMeetingServices();
@@ -647,6 +652,7 @@ class _MirrorPrototypeState extends State<MirrorPrototype> {
           },
           onAgentTap: _openToolboxAgent,
           onLogout: _logout,
+          onAccountSettings: () => _push(PrototypeRoute.accountSettings),
         );
     }
   }
@@ -825,6 +831,25 @@ class _MirrorPrototypeState extends State<MirrorPrototype> {
           quota: _tokenQuota ?? MeQuota.walletPlaceholder(),
           skills: _tokenSkills,
           onBack: _pop,
+        );
+      case PrototypeRoute.accountSettings:
+        return AccountSettingsScreen(
+          onBack: _pop,
+          onAccountDeleted: () async {
+            await AiConsentStore.clear();
+            await BlockStore.instance.clear();
+            await ApiConfig.resetSession();
+            if (!mounted) return;
+            ChatInboxWs.instance.disconnect(reconnect: false);
+            DmThreadStore.instance.clear();
+            _stopMeetingServices();
+            setState(() {
+              _entered = false;
+              _stack.clear();
+              _tab = MirrorTab.feed;
+              _authHint = null;
+            });
+          },
         );
     }
   }

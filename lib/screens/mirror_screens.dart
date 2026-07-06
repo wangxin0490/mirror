@@ -47,7 +47,9 @@ import '../utils/media_url.dart';
 import '../widgets/mirror_user_avatar.dart';
 import '../screens/kb/kb_swipe_actions.dart';
 import '../screens/kb/kb_ui_helpers.dart';
+import '../widgets/ai_data_consent_dialog.dart';
 import '../widgets/login_legal_consent_footer.dart';
+import '../widgets/moderation_action_sheet.dart';
 
 const _kModelNotVisionHint = '无法发送图片，请换一个标注「支持图片」的模型';
 
@@ -1258,6 +1260,10 @@ class _ChatScreenState extends State<ChatScreen> {
     if (widget.previewMode || _sending || _uploading) return;
     text = text.trim();
     if (text.isEmpty && attachments.isEmpty) return;
+
+    final consented = await ensureAiDataConsent(context);
+    if (!consented || !mounted) return;
+
     if (attachments.any((a) => a.type == 'image') &&
         !_selectedModelSupportsVision()) {
       _toast(_kModelNotVisionHint);
@@ -2719,6 +2725,20 @@ class _HumanChatScreenState extends State<HumanChatScreen> {
     }
   }
 
+  Future<void> _showPeerModeration() async {
+    final peer = _peer;
+    final uid = _peerUserId > 0 ? _peerUserId : peer.userId;
+    await showModerationActionSheet(
+      context,
+      title: '私信操作',
+      userId: uid > 0 ? uid : null,
+      userName: peer.name,
+      targetType: 'user',
+      targetId: '$uid',
+      onBlocked: widget.onBack,
+    );
+  }
+
   void _showAttachSheet() {
     showModalBottomSheet<void>(
       context: context,
@@ -2832,6 +2852,13 @@ class _HumanChatScreenState extends State<HumanChatScreen> {
                   ],
                 ),
               ),
+              if (_peerUserId > 0 || _peer.userId > 0)
+                IconButton(
+                  icon: const Icon(Icons.more_horiz, size: 20, color: MirrorColors.text2),
+                  onPressed: _showPeerModeration,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                ),
             ],
           ),
         ),

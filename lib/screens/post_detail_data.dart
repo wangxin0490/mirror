@@ -15,6 +15,7 @@ class PostAuthorInfo {
     required this.sub,
     this.avatarUrl = '',
     this.followed = false,
+    this.userId = 0,
   });
 
   final String av;
@@ -23,6 +24,7 @@ class PostAuthorInfo {
   final String sub;
   final String avatarUrl;
   final bool followed;
+  final int userId;
 }
 
 enum PostBodyBlockType { paragraph, callout, compare, code, stats }

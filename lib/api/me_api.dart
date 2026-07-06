@@ -1,4 +1,5 @@
 import '../api/api_client.dart';
+import '../api/api_result.dart';
 import '../models/me_models.dart';
 
 /// 「我的」模块接口封装。
@@ -115,5 +116,12 @@ class MeApi {
     return list
         .map((e) => CronTaskData.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  /// 永久注销当前账号（DELETE /api/v1/me/account）。
+  static Future<ApiResult<void>> deleteAccount() async {
+    final r = await ApiClient.deleteResult('/api/v1/me/account');
+    if (r.ok) return ApiResult(code: 0, message: r.message);
+    return ApiResult(code: r.code, message: r.message.isNotEmpty ? r.message : '注销失败');
   }
 }

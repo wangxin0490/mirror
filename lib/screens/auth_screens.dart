@@ -9,6 +9,7 @@ import '../theme/mirror_theme.dart';
 import '../widgets/mirror_icon.dart';
 import '../widgets/mirror_pressable.dart';
 import '../widgets/phone_components.dart';
+import '../widgets/login_legal_consent_footer.dart';
 
 const _kResendCooldownSeconds = 60;
 
@@ -730,7 +731,11 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(32, 0, 32, 44),
-          child: MirrorPressable(
+          child: Column(
+            children: [
+              const LoginLegalConsentFooter(actionPrefix: '注册'),
+              const SizedBox(height: 12),
+              MirrorPressable(
             onTap: _submitting ? null : _submit,
             borderRadius: BorderRadius.circular(12),
             child: Container(
@@ -750,6 +755,8 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                 ),
               ),
             ),
+          ),
+            ],
           ),
         ),
       ],

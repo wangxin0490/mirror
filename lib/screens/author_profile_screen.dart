@@ -15,6 +15,7 @@ import '../widgets/mirror_avatar_preview.dart';
 import '../widgets/mirror_network_image.dart';
 import '../widgets/mirror_pressable.dart';
 import '../widgets/mirror_scroll.dart';
+import '../widgets/moderation_action_sheet.dart';
 import '../widgets/phone_components.dart';
 
 /// 博主 / 我的个人主页（小红书风格）
@@ -173,6 +174,19 @@ class _AuthorProfileScreenState extends State<AuthorProfileScreen> {
     }
   }
 
+  Future<void> _showUserModeration() async {
+    final author = _display;
+    await showModerationActionSheet(
+      context,
+      title: '用户操作',
+      userId: author.userId,
+      userName: author.name,
+      targetType: 'user',
+      targetId: '${author.userId}',
+      onBlocked: widget.onBack,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final author = _display;
@@ -225,6 +239,13 @@ class _AuthorProfileScreenState extends State<AuthorProfileScreen> {
                   padding: const EdgeInsets.all(6),
                   borderRadius: BorderRadius.circular(20),
                   child: const Icon(Icons.share_outlined, size: 20, color: MirrorColors.text2),
+                ),
+              if (!_isOwnProfile && _display.userId > 0)
+                IconButton(
+                  icon: const Icon(Icons.more_horiz, size: 20, color: MirrorColors.text2),
+                  onPressed: _showUserModeration,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 ),
             ],
           ),

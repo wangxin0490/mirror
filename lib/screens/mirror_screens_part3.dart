@@ -1430,6 +1430,7 @@ class MeScreen extends StatefulWidget {
     this.onQuotaTap,
     this.onAgentTap,
     this.onLogout,
+    this.onAccountSettings,
   });
 
   final VoidCallback? onMyHome;
@@ -1441,6 +1442,7 @@ class MeScreen extends StatefulWidget {
   final void Function(MeQuota quota, List<SkillData> skills)? onQuotaTap;
   final ValueChanged<ToolboxAgentItem>? onAgentTap;
   final VoidCallback? onLogout;
+  final VoidCallback? onAccountSettings;
 
   @override
   State<MeScreen> createState() => _MeScreenState();
@@ -1654,6 +1656,17 @@ class _MeScreenState extends State<MeScreen> {
                     ),
                     const SectionLabel('我的工具箱 · TOOLBOX'),
                     _toolboxSection(),
+                    if (widget.onAccountSettings != null) ...[
+                      const SizedBox(height: 16),
+                      _listSection([
+                        _meRow(
+                          icon: Icons.settings_outlined,
+                          label: '账号与隐私',
+                          sub: '用户协议 · 隐私政策 · 注销账号',
+                          onTap: widget.onAccountSettings,
+                        ),
+                      ]),
+                    ],
                     if (widget.onLogout != null) ...[
                       const SizedBox(height: 20),
                       MirrorPressable(

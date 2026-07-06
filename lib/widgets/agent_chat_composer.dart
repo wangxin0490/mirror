@@ -125,10 +125,16 @@ class AgentChatComposer extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Flexible(child: _modelPill()),
-                const SizedBox(width: 6),
-                _webSearchToggle(),
-                const Spacer(),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(child: _modelPill()),
+                      const SizedBox(width: 6),
+                      _webSearchToggle(),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
                 _circleAction(
                   key: const Key('chat-more-btn'),
                   icon: Icons.add,
@@ -152,33 +158,38 @@ class AgentChatComposer extends StatelessWidget {
   }
 
   Widget _modelPill() {
-    return MirrorPressable(
-      key: const Key('chat-model-picker'),
-      onTap: onOpenModelPicker,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: MirrorColors.bgSoft,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return MirrorPressable(
+          key: const Key('chat-model-picker'),
+          onTap: onOpenModelPicker,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: MirrorColors.borderSoft),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Text(
-                modelLabel,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: MirrorTheme.sans(fontSize: 12, color: MirrorColors.text2, weight: FontWeight.w500),
-              ),
+          child: Container(
+            constraints: BoxConstraints(maxWidth: constraints.maxWidth),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: MirrorColors.bgSoft,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: MirrorColors.borderSoft),
             ),
-            const SizedBox(width: 2),
-            const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: MirrorColors.text3),
-          ],
-        ),
-      ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    modelLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: MirrorTheme.sans(fontSize: 12, color: MirrorColors.text2, weight: FontWeight.w500),
+                  ),
+                ),
+                const SizedBox(width: 2),
+                const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: MirrorColors.text3),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

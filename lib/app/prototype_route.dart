@@ -25,4 +25,5 @@ enum PrototypeRoute {
   routing,
   cron,
   tokenUsage,
+  accountSettings,
 }

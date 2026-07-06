@@ -963,6 +963,7 @@ class CommentsThreadList extends StatelessWidget {
     required this.liked,
     required this.onLikeToggle,
     required this.onReply,
+    this.onReportComment,
     this.compact = false,
     this.maxItems,
     this.rows,
@@ -972,6 +973,7 @@ class CommentsThreadList extends StatelessWidget {
   final Set<int> liked;
   final void Function(int id) onLikeToggle;
   final void Function(String name, {int parentId, int userId}) onReply;
+  final void Function(CommentRowView row)? onReportComment;
   final bool compact;
   final int? maxItems;
   final List<CommentRowView>? rows;
@@ -1004,6 +1006,7 @@ class CommentsThreadList extends StatelessWidget {
               r.text,
               r.time,
               r.likes,
+              reportRow: r,
               nested: r.nested
                   .map((n) => _Nest(n.commentId, n.userId, n.av, n.grad, n.avatarUrl, n.name, n.isAuthor, n.replyTo, n.text))
                   .toList(),
@@ -1077,11 +1080,12 @@ class CommentsThreadList extends StatelessWidget {
     String text,
     String time,
     String likes, {
+    CommentRowView? reportRow,
     List<_Nest>? nested,
     String? moreReplies,
   }) {
     final on = liked.contains(id);
-    return Padding(
+    final item = Padding(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: compact ? 10 : 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1156,6 +1160,14 @@ class CommentsThreadList extends StatelessWidget {
         ],
       ),
     );
+    if (onReportComment != null && reportRow != null) {
+      return GestureDetector(
+        onLongPress: () => onReportComment!(reportRow),
+        behavior: HitTestBehavior.opaque,
+        child: item,
+      );
+    }
+    return item;
   }
 
   Widget _nestRow(_Nest n) => MirrorPressable(

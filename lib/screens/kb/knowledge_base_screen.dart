@@ -9,6 +9,7 @@ import '../../models/chat_attachment.dart';
 import '../../models/pending_chat_attachment.dart';
 import '../../utils/chat_pending_upload.dart';
 import '../../widgets/chat_message_attachments.dart';
+import '../../widgets/ai_data_consent_dialog.dart';
 import '../../models/kb_chat_models.dart';
 import '../../models/kb_models.dart';
 import '../../services/document_picker_service.dart';
@@ -2296,6 +2297,8 @@ class _KbChatScreenState extends State<KbChatScreen> {
       if (_kbIds.isEmpty) _toast('请先打开知识库');
       return;
     }
+    final consented = await ensureAiDataConsent(context);
+    if (!consented || !mounted) return;
     setState(() {
       _sending = true;
       _messages.addAll([

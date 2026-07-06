@@ -74,6 +74,35 @@ void main() {
     expect(sent, isTrue);
   });
 
+  testWidgets('AgentChatComposer toolbar adapts to narrow width with long model label', (tester) async {
+    final ctrl = TextEditingController();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(size: Size(320, 640)),
+          child: Scaffold(
+            body: AgentChatComposer(
+              controller: ctrl,
+              enabled: true,
+              canSend: false,
+              modelLabel: 'deepseek-v4-flash-none-extra-long-name',
+              webSearchEnabled: true,
+              previewMode: false,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('chat-model-picker')), findsOneWidget);
+    expect(find.byKey(const Key('chat-web-search-toggle')), findsOneWidget);
+    expect(find.byKey(const Key('chat-more-btn')), findsOneWidget);
+    expect(find.byKey(const Key('chat-send-btn')), findsOneWidget);
+    expect(find.text('联网'), findsOneWidget);
+  });
+
   test('ComposerAttachmentSlots hasPending when staged', () {
     final slots = ComposerAttachmentSlots();
     expect(slots.hasPending, isFalse);
