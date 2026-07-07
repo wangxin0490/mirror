@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/me_api.dart';
+import '../config/review_flags.dart';
 import '../models/me_models.dart';
 import '../theme/mirror_colors.dart';
 import '../theme/mirror_theme.dart';
@@ -48,7 +49,9 @@ class _TokenUsageDetailScreenState extends State<TokenUsageDetailScreen> {
     });
   }
 
-  bool get _walletMode => _quota.isWalletMode;
+  bool get _walletMode => _quota.isWalletMode && !ReviewFlags.hideBilling;
+
+  bool get _showSummaryCard => !ReviewFlags.hideBilling || !_quota.isWalletMode;
 
   List<SkillData> get _visibleSkills {
     final skills = _skills.where((s) {
@@ -74,7 +77,7 @@ class _TokenUsageDetailScreenState extends State<TokenUsageDetailScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
             children: [
-              _summaryCard(_quota),
+              if (_showSummaryCard) _summaryCard(_quota),
               const SectionLabel('按技能统计 · BY SKILL'),
               if (_loading && !_loadedFromApi)
                 _emptyHint('加载中…')
@@ -164,7 +167,9 @@ class _TokenUsageDetailScreenState extends State<TokenUsageDetailScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            q.isWalletMode ? '按金额计费 · 账户余额' : '按 Token 消耗计费 · 工具箱各技能独立统计',
+            _walletMode
+                ? '按金额计费 · 账户余额'
+                : '按 Token 消耗计费 · 工具箱各技能独立统计',
             style: MirrorTheme.sans(fontSize: 11, color: MirrorColors.text3),
           ),
           const SizedBox(height: 14),

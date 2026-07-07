@@ -197,6 +197,7 @@ jobs:
         run: |
           args=(build ipa --release --export-options-plist=ios/ExportOptions.appstore.plist)
           args+=(--dart-define=API_BASE="$API_BASE")
+          args+=(--dart-define=HIDE_BILLING=true)
           if [ -n "$BUILD_NUMBER" ]; then
             args+=(--build-number="$BUILD_NUMBER")
           fi

@@ -4,6 +4,7 @@ import '../api/meeting_api.dart';
 import '../api/me_api.dart';
 import '../api/product_agent_api.dart';
 import '../config/api_config.dart';
+import '../config/review_flags.dart';
 import '../models/feed_models.dart';
 import '../models/meeting_models.dart';
 import '../models/me_models.dart';
@@ -1645,15 +1646,32 @@ class _MeScreenState extends State<MeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _quotaBox(
-                      _data!.quota,
-                      onTap: widget.onQuotaTap == null
-                          ? null
-                          : () => widget.onQuotaTap!(
+                    if (!ReviewFlags.hideBilling)
+                      _quotaBox(
+                        _data!.quota,
+                        onTap: widget.onQuotaTap == null
+                            ? null
+                            : () => widget.onQuotaTap!(
+                                _data!.quota,
+                                _toolboxAsSkills(_toolbox),
+                              ),
+                      )
+                    else if (widget.onQuotaTap != null)
+                      Container(
+                        key: const Key('me-token-usage-entry'),
+                        margin: const EdgeInsets.only(bottom: 4),
+                        child: _listSection([
+                          _meRow(
+                            icon: Icons.pie_chart_outline,
+                            label: 'Token 使用明细',
+                            sub: '按工具箱各技能独立统计',
+                            onTap: () => widget.onQuotaTap!(
                               _data!.quota,
                               _toolboxAsSkills(_toolbox),
                             ),
-                    ),
+                          ),
+                        ]),
+                      ),
                     const SectionLabel('我的工具箱 · TOOLBOX'),
                     _toolboxSection(),
                     if (widget.onAccountSettings != null) ...[
@@ -2075,7 +2093,7 @@ class _MeScreenState extends State<MeScreen> {
               '已停用',
               style: MirrorTheme.mono(fontSize: 9, color: MirrorColors.text3),
             )
-          else
+          else if (!ReviewFlags.hideBilling)
             Text(
               s.usageTrailing,
               style: MirrorTheme.mono(

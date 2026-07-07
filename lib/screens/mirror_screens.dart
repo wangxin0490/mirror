@@ -10,6 +10,7 @@ import '../services/agent_sse_client.dart';
 import '../services/asr_client.dart';
 import '../services/voice_input_controller.dart';
 import '../services/chat_stream_handle.dart';
+import '../config/review_flags.dart';
 import '../theme/mirror_colors.dart';
 import '../theme/mirror_theme.dart';
 import '../utils/agent_model.dart';
@@ -3222,15 +3223,16 @@ class _HumanChatScreenState extends State<HumanChatScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '¥12',
-                        style: MirrorTheme.mono(
-                          fontSize: 13,
-                          color: MirrorColors.coral,
-                          weight: MirrorFontWeight.semibold,
-                          letterSpacing: 0,
+                      if (!ReviewFlags.hideBilling)
+                        Text(
+                          '¥12',
+                          style: MirrorTheme.mono(
+                            fontSize: 13,
+                            color: MirrorColors.coral,
+                            weight: MirrorFontWeight.semibold,
+                            letterSpacing: 0,
+                          ),
                         ),
-                      ),
                       Text(
                         '一键导入 →',
                         style: MirrorTheme.sans(
