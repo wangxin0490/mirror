@@ -21,7 +21,7 @@ on:
         required: false
         default: 'http://115.159.46.108:8100'
       build_number:
-        description: '可选：覆盖 iOS 构建号（CFBundleVersion）'
+        description: '可选：覆盖 iOS 构建号（默认使用 github.run_number 自动递增）'
         required: false
         default: ''
   workflow_call:
@@ -32,7 +32,7 @@ on:
         required: false
         default: 'http://115.159.46.108:8100'
       build_number:
-        description: Override CFBundleVersion build number
+        description: 'Override CFBundleVersion (default github.run_number)'
         type: string
         required: false
         default: ''
@@ -45,11 +45,21 @@ jobs:
     env:
       BUNDLE_ID: com.mirror.mirrorMobile
       API_BASE: ${{ inputs.api_base || github.event.inputs.api_base || vars.API_BASE || 'http://115.159.46.108:8100' }}
-      BUILD_NUMBER: ${{ inputs.build_number || github.event.inputs.build_number || '' }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Resolve iOS build number
+        run: |
+          MANUAL="${{ inputs.build_number || github.event.inputs.build_number || '' }}"
+          if [ -n "$MANUAL" ]; then
+            BN="$MANUAL"
+          else
+            BN="${{ github.run_number }}"
+          fi
+          echo "BUILD_NUMBER=$BN" >> "$GITHUB_ENV"
+          echo "CFBundleVersion (build number): $BN"
 
       - name: Select Xcode 26
         run: |
@@ -198,9 +208,7 @@ jobs:
           args=(build ipa --release --export-options-plist=ios/ExportOptions.appstore.plist)
           args+=(--dart-define=API_BASE="$API_BASE")
           args+=(--dart-define=HIDE_BILLING=true)
-          if [ -n "$BUILD_NUMBER" ]; then
-            args+=(--build-number="$BUILD_NUMBER")
-          fi
+          args+=(--build-number="$BUILD_NUMBER")
           flutter "${args[@]}"
 
       - name: Resolve IPA path
