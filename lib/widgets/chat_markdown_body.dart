@@ -6,6 +6,7 @@ import '../theme/mirror_theme.dart';
 import '../utils/safe_uri.dart';
 import '../utils/strip_emoji.dart';
 import 'agent_copy_button.dart';
+import 'ai_generated_content_label.dart';
 
 /// KB / Agent 共用聊天 Markdown 渲染（gpt_markdown + 引用角标 + 代码复制）。
 class ChatMarkdownBody extends StatelessWidget {
@@ -15,12 +16,16 @@ class ChatMarkdownBody extends StatelessWidget {
     this.onCitationTap,
     this.onLinkTap,
     this.onCopyFeedback,
+    this.showAiGeneratedLabel = false,
+    this.aiGeneratedLabelStyle = AiGeneratedLabelStyle.textSuffix,
   });
 
   final String source;
   final void Function(int index)? onCitationTap;
   final Future<void> Function(String url)? onLinkTap;
   final VoidCallback? onCopyFeedback;
+  final bool showAiGeneratedLabel;
+  final AiGeneratedLabelStyle aiGeneratedLabelStyle;
 
   static const citationScheme = 'mirror-citation://';
 
@@ -111,7 +116,7 @@ class ChatMarkdownBody extends StatelessWidget {
       linkHoverColor: MirrorColors.accent,
     );
 
-    return GptMarkdownTheme(
+    final markdown = GptMarkdownTheme(
       gptThemeData: mdTheme,
       child: GptMarkdown(
         md,
@@ -195,6 +200,12 @@ class ChatMarkdownBody extends StatelessWidget {
         );
         },
       ),
+    );
+
+    return AiGeneratedContentFrame(
+      visible: showAiGeneratedLabel && source.trim().isNotEmpty,
+      style: aiGeneratedLabelStyle,
+      child: markdown,
     );
   }
 }

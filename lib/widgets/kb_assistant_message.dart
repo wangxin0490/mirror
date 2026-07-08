@@ -122,6 +122,7 @@ class _KbAssistantMessageState extends State<KbAssistantMessage> {
               ChatMarkdownBody(
                 source: m.content,
                 onCitationTap: _handleCitation,
+                showAiGeneratedLabel: !m.streaming,
               ),
           ],
         ),

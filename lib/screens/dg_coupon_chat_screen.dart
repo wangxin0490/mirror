@@ -876,7 +876,10 @@ class _DgCouponChatScreenState extends State<DgCouponChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (parsed.markdownText.isNotEmpty)
-                    ChatMarkdownBody(source: parsed.markdownText),
+                    ChatMarkdownBody(
+                      source: parsed.markdownText,
+                      showAiGeneratedLabel: !m.streaming,
+                    ),
                   if (parsed.products.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),

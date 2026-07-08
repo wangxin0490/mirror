@@ -565,6 +565,7 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
   final _nameCtrl = TextEditingController();
   final _bioCtrl = TextEditingController();
   bool _submitting = false;
+  bool _legalAccepted = false;
   String? _error;
 
   @override
@@ -575,6 +576,12 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
   }
 
   Future<void> _submit() async {
+    final agreed = await ensureLoginLegalConsent(context, accepted: _legalAccepted);
+    if (!mounted || !agreed) return;
+    if (!_legalAccepted) {
+      setState(() => _legalAccepted = true);
+    }
+
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
       setState(() => _error = '请填写昵称');
@@ -733,7 +740,10 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
           padding: const EdgeInsets.fromLTRB(32, 0, 32, 44),
           child: Column(
             children: [
-              const LoginLegalConsentFooter(actionPrefix: '注册'),
+              LoginLegalConsentFooter(
+                value: _legalAccepted,
+                onChanged: (v) => setState(() => _legalAccepted = v),
+              ),
               const SizedBox(height: 12),
               MirrorPressable(
             onTap: _submitting ? null : _submit,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/mirror_colors.dart';
 import '../theme/mirror_theme.dart';
 import '../utils/meeting_minutes_parser.dart';
+import 'ai_generated_content_label.dart';
 import 'mirror_markdown_body.dart';
 import 'mirror_pressable.dart';
 
@@ -13,9 +14,11 @@ class MeetingMinutesView extends StatefulWidget {
   const MeetingMinutesView({
     super.key,
     required this.parsed,
+    this.showAiGeneratedLabel = true,
   });
 
   final ParsedMeetingMinutes parsed;
+  final bool showAiGeneratedLabel;
 
   @override
   State<MeetingMinutesView> createState() => _MeetingMinutesViewState();
@@ -29,12 +32,19 @@ class _MeetingMinutesViewState extends State<MeetingMinutesView> {
 
   ParsedMeetingMinutes get _p => widget.parsed;
 
+  Widget _aiMarkdown(String body) {
+    return AiGeneratedContentFrame(
+      visible: widget.showAiGeneratedLabel && body.trim().isNotEmpty,
+      child: MirrorMarkdownBody(source: body),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_p.hasStructure) {
       return SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
-        child: MirrorMarkdownBody(source: _p.rawMarkdown),
+        child: _aiMarkdown(_p.rawMarkdown),
       );
     }
 
@@ -183,7 +193,7 @@ class _MeetingMinutesViewState extends State<MeetingMinutesView> {
           if (expanded)
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-              child: MirrorMarkdownBody(source: body),
+              child: _aiMarkdown(body),
             ),
         ],
       ),
@@ -198,7 +208,7 @@ class _MeetingMinutesViewState extends State<MeetingMinutesView> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: MirrorColors.borderSoft),
       ),
-      child: MirrorMarkdownBody(source: body),
+      child: _aiMarkdown(body),
     );
   }
 
@@ -260,7 +270,7 @@ class _MeetingMinutesViewState extends State<MeetingMinutesView> {
       );
     }
     if (_p.todosMarkdown.isNotEmpty) {
-      return MirrorMarkdownBody(source: _p.todosMarkdown);
+      return _aiMarkdown(_p.todosMarkdown);
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

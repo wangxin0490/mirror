@@ -88,6 +88,7 @@ class _AgentAssistantMessageState extends State<AgentAssistantMessage> {
             onCitationTap: _handleCitation,
             onLinkTap: _openUrl,
             onCopyFeedback: widget.onCopyFeedback,
+            showAiGeneratedLabel: !m.streaming,
           ),
         if (parsed.products.isNotEmpty)
           Column(

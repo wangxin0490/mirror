@@ -7,6 +7,7 @@ import '../theme/mirror_colors.dart';
 import '../theme/mirror_theme.dart';
 import '../utils/toolbox_agent_icon.dart';
 import '../widgets/agent_thinking_bubble.dart';
+import '../widgets/ai_generated_content_label.dart';
 import '../widgets/mirror_pressable.dart';
 import '../widgets/phone_components.dart';
 
@@ -447,10 +448,26 @@ class _ProductAgentChatScreenState extends State<ProductAgentChatScreen> {
                                 color: MirrorColors.borderSoft,
                               ),
                             ),
-                            child: Text(
-                              m.content,
-                              style: MirrorTheme.sans(fontSize: 13.5),
-                            ),
+                            child: m.isUser
+                                ? Text(
+                                    m.content,
+                                    style: MirrorTheme.sans(fontSize: 13.5),
+                                  )
+                                : m.streaming
+                                    ? Text(
+                                        m.content,
+                                        style: MirrorTheme.sans(fontSize: 13.5),
+                                      )
+                                    : Text.rich(
+                                        TextSpan(
+                                          style: MirrorTheme.sans(fontSize: 13.5),
+                                          children: [
+                                            TextSpan(text: m.content),
+                                            const TextSpan(text: ' '),
+                                            AiGeneratedTextLabel.textSpan(),
+                                          ],
+                                        ),
+                                      ),
                           ),
                         ],
                       ),

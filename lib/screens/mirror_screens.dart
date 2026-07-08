@@ -55,11 +55,27 @@ import '../widgets/moderation_action_sheet.dart';
 const _kModelNotVisionHint = '无法发送图片，请换一个标注「支持图片」的模型';
 
 // ─── S1 Welcome ───────────────────────────────────────────────
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key, this.authHint, this.onPhoneLogin});
 
   final String? authHint;
   final VoidCallback? onPhoneLogin;
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  bool _legalAccepted = false;
+
+  Future<void> _onPhoneLoginTap() async {
+    final agreed = await ensureLoginLegalConsent(context, accepted: _legalAccepted);
+    if (!mounted || !agreed) return;
+    if (!_legalAccepted) {
+      setState(() => _legalAccepted = true);
+    }
+    widget.onPhoneLogin?.call();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +166,7 @@ class WelcomeScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(28, 0, 28, 44),
           child: Column(
             children: [
-              if (authHint != null) ...[
+              if (widget.authHint != null) ...[
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
@@ -163,7 +179,7 @@ class WelcomeScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    authHint!,
+                    widget.authHint!,
                     textAlign: TextAlign.center,
                     style: MirrorTheme.sans(
                       fontSize: 12,
@@ -172,8 +188,11 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                 ),
               ],
-              _primaryBtn(Icons.smartphone_outlined, '手机号登录', onPhoneLogin),
-              const LoginLegalConsentFooter(),
+              _primaryBtn(Icons.smartphone_outlined, '手机号登录', _onPhoneLoginTap),
+              LoginLegalConsentFooter(
+                value: _legalAccepted,
+                onChanged: (v) => setState(() => _legalAccepted = v),
+              ),
             ],
           ),
         ),
