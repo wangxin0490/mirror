@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../legal/ai_third_party_disclosure.dart';
 import '../legal/mirror_legal_documents.dart';
 import '../screens/legal_document_screen.dart';
 import '../services/ai_consent_store.dart';
@@ -26,7 +27,7 @@ class AiDataConsentDialog extends StatelessWidget {
       backgroundColor: MirrorColors.bgApp,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
-        '第三方 AI 数据处理说明',
+        '第三方 AI 数据处理授权',
         style: MirrorTheme.sans(fontSize: 16, weight: FontWeight.w600),
       ),
       content: SingleChildScrollView(
@@ -35,17 +36,45 @@ class AiDataConsentDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'MirrorX 的 AI 对话、知识库问答、会议纪要等功能，会将您输入的内容发送至第三方大语言模型与语音识别服务以生成回复。',
-              style: MirrorTheme.sans(fontSize: 13, height: 1.55, color: MirrorColors.text2),
+              aiThirdPartyConsentLeadSentence(),
+              style: MirrorTheme.sans(
+                fontSize: 13,
+                height: 1.55,
+                weight: FontWeight.w600,
+                color: MirrorColors.text,
+              ),
             ),
             const SizedBox(height: 14),
+            Text(
+              '接收方与用途：',
+              style: MirrorTheme.sans(fontSize: 13, weight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            ...kAiThirdPartyProviders.map(
+              (p) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('• ', style: MirrorTheme.sans(fontSize: 13, color: MirrorColors.text2)),
+                    Expanded(
+                      child: Text(
+                        '${p.companyName}：${p.services}',
+                        style: MirrorTheme.sans(fontSize: 13, height: 1.45, color: MirrorColors.text2),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             Text('可能发送的数据包括：', style: MirrorTheme.sans(fontSize: 13, weight: FontWeight.w600)),
             const SizedBox(height: 6),
             ...[
-              '您输入的文字、图片、文件与语音转写文本',
+              '您输入的文字、图片、文件与语音（含实时转写）',
               '所选 AI 模型与会话上下文（用于连续对话）',
               '知识库文档片段（仅在知识库问答时）',
-              '会议录音转写文本（仅在会议纪要功能中）',
+              '会议录音及转写文本（仅在会议纪要功能中）',
             ].map(
               (t) => Padding(
                 padding: const EdgeInsets.only(bottom: 4),
@@ -61,13 +90,12 @@ class AiDataConsentDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Text('数据接收方：', style: MirrorTheme.sans(fontSize: 13, weight: FontWeight.w600)),
-            const SizedBox(height: 4),
             Text(
-              '经我们甄选并签订数据处理协议的第三方 AI 服务提供商（包括但不限于大语言模型推理与语音识别服务商）。具体名单与用途详见《隐私政策》。',
-              style: MirrorTheme.sans(fontSize: 13, height: 1.5, color: MirrorColors.text2),
+              '点击「同意并继续」即表示您明确同意我们将上述数据发送至所列第三方 AI 服务提供商。'
+              '您可随时停止使用相关功能；完整说明见《隐私政策》。',
+              style: MirrorTheme.sans(fontSize: 12, height: 1.5, color: MirrorColors.text3),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             MirrorPressable(
               onTap: () => LegalDocumentScreen.open(context, MirrorLegalDocument.privacyPolicy),
               child: Text(

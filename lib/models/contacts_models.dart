@@ -32,6 +32,18 @@ class ContactUserCard {
 
   bool get canFollow => followState == 'none' || followState == 'follower';
 
+  /// 接口未返回按钮文案时的本地兜底。
+  String get resolvedFollowButtonLabel {
+    final label = followButtonLabel.trim();
+    if (label.isNotEmpty) return label;
+    return switch (followState) {
+      'mutual' => '互关',
+      'following' => '已关注',
+      'follower' => '回关',
+      _ => '+ 关注',
+    };
+  }
+
   ContactUserCard copyWith({
     String? followState,
     String? followButtonLabel,
@@ -140,6 +152,17 @@ class ContactFollowResult {
         followState: j['follow_state'] as String? ?? 'none',
         followButtonLabel: j['follow_button_label'] as String? ?? '',
       );
+
+  String get resolvedFollowButtonLabel {
+    final label = followButtonLabel.trim();
+    if (label.isNotEmpty) return label;
+    return switch (followState) {
+      'mutual' => '互关',
+      'following' => '已关注',
+      'follower' => '回关',
+      _ => '+ 关注',
+    };
+  }
 }
 
 class ContactListResponse {

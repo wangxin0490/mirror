@@ -1,3 +1,5 @@
+import 'ai_third_party_disclosure.dart';
+
 /// 应用内法律文档（通用版，供登录告知与审核查阅）。
 enum MirrorLegalDocument {
   userAgreement,
@@ -10,13 +12,29 @@ extension MirrorLegalDocumentMeta on MirrorLegalDocument {
         MirrorLegalDocument.privacyPolicy => '隐私政策',
       };
 
-  String get updatedAt => '2026年7月6日';
+  String get updatedAt => '2026年7月8日';
 
   List<({String heading, String body})> get sections => switch (this) {
         MirrorLegalDocument.userAgreement => _userAgreementSections,
-        MirrorLegalDocument.privacyPolicy => _privacyPolicySections,
+        MirrorLegalDocument.privacyPolicy => _buildPrivacyPolicySections(),
       };
 }
+
+List<({String heading, String body})> _buildPrivacyPolicySections() => [
+      ..._privacyPolicySectionsBeforeSharing,
+      (
+        heading: '五、信息的共享与委托处理',
+        body:
+            '我们不会出售您的个人信息。仅在以下情形可能共享或委托处理：\n'
+            '（1）取得您的明确同意（使用 AI 对话、知识库问答、会议纪要等 AI 功能前，应用内会单独说明并征得同意）；\n'
+            '（2）为提供短信验证、云存储、AI 推理、语音识别等必要能力，向具备安全能力的服务提供商提供（我们会要求其遵守保密与安全义务）；\n'
+            '（3）法律法规、诉讼、政府主管部门依法要求；\n'
+            '（4）为保护您、我们或其他用户的合法权益所必需。\n\n'
+            '【第三方 AI 服务说明】\n'
+            '${aiThirdPartyPrivacyPolicyBody()}',
+      ),
+      ..._privacyPolicySectionsAfterSharing,
+    ];
 
 const _operatorName = 'MirrorX 运营团队';
 const _contactEmail = 'miaochenggong@heunion.com';
@@ -87,7 +105,7 @@ const _userAgreementSections = [
   ),
 ];
 
-const _privacyPolicySections = [
+const _privacyPolicySectionsBeforeSharing = [
   (
     heading: '一、引言',
     body:
@@ -124,21 +142,9 @@ const _privacyPolicySections = [
         '2. 我们采取加密传输、访问控制、最小权限等合理安全措施保护您的信息。\n'
         '3. 我们仅在实现目的所必需的期限内保留个人信息；超出期限后将删除或匿名化处理，法律法规另有规定的除外。',
   ),
-  (
-    heading: '五、信息的共享与委托处理',
-    body:
-        '我们不会出售您的个人信息。仅在以下情形可能共享或委托处理：\n'
-        '（1）取得您的明确同意（使用 AI 对话、知识库问答、会议纪要等 AI 功能前，应用内会单独说明并征得同意）；\n'
-        '（2）为提供短信验证、云存储、AI 推理、语音识别等必要能力，向具备安全能力的服务提供商提供（我们会要求其遵守保密与安全义务）；\n'
-        '（3）法律法规、诉讼、政府主管部门依法要求；\n'
-        '（4）为保护您、我们或其他用户的合法权益所必需。\n\n'
-        '【第三方 AI 服务说明】\n'
-        '当您使用 AI 相关功能时，我们可能将以下数据发送至第三方大语言模型与语音识别服务提供商（经我们甄选并签订数据处理协议）：\n'
-        '• 发送的数据：您输入的文字、上传的图片/文件、语音转写文本、会话上下文、知识库文档片段、会议录音转写文本；\n'
-        '• 接收方：第三方 AI 推理与语音识别服务提供商（具体服务商可能随业务调整，均受合同约束）；\n'
-        '• 用途：生成 AI 回复、语音转文字、知识库检索增强与会议纪要；\n'
-        '• 保护：我们要求上述服务商提供与本政策同等或更严格的保护，并仅在实现功能所必需范围内处理数据。',
-  ),
+];
+
+const _privacyPolicySectionsAfterSharing = [
   (
     heading: '六、您的权利',
     body:
@@ -164,6 +170,6 @@ const _privacyPolicySections = [
     body:
         '个人信息保护负责人/联系邮箱：$_contactEmail\n'
         '运营者：$_operatorName\n'
-        '更新日期：2026年7月6日',
+        '更新日期：2026年7月8日',
   ),
 ];

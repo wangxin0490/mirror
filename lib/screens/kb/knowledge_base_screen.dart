@@ -1104,7 +1104,13 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
     final kbId = _openedKbId;
     if (kbId == null) return;
     _closeImportMenu();
-    openKbVoiceRecordScreen(
+    unawaited(_beginVoiceImportWithConsent(kbId));
+  }
+
+  Future<void> _beginVoiceImportWithConsent(int kbId) async {
+    final consented = await ensureAiDataConsent(context);
+    if (!consented || !mounted) return;
+    final ok = await openKbVoiceRecordScreen(
       context,
       onUpload: (recorded, {onProgress}) => KbStore.instance.uploadDocument(
         kbId,
@@ -1113,10 +1119,9 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
         folderId: _folderFilterId,
         onProgress: onProgress,
       ),
-    ).then((ok) {
-      if (!mounted) return;
-      if (ok) _toast('已加入知识库，后台解析中');
-    });
+    );
+    if (!mounted) return;
+    if (ok) _toast('已加入知识库，后台解析中');
   }
 
   void _beginLocalFileUpload() {
@@ -2130,6 +2135,8 @@ class _KbChatScreenState extends State<KbChatScreen> {
       _toast('语音识别服务未开启');
       return;
     }
+    final consented = await ensureAiDataConsent(context);
+    if (!consented || !mounted) return;
     try {
       await _voiceInput.holdStart();
     } catch (_) {

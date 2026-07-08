@@ -15,6 +15,7 @@ import '../../state/meeting_session_store.dart';
 import '../kb/kb_voice_record_screen.dart';
 import '../../theme/mirror_colors.dart';
 import '../../theme/mirror_theme.dart';
+import '../../widgets/ai_data_consent_dialog.dart';
 import '../../widgets/mirror_pressable.dart';
 import '../../widgets/phone_components.dart';
 
@@ -52,6 +53,8 @@ class _MeetingHubScreenState extends State<MeetingHubScreen> {
   }
 
   Future<void> _startRecording() async {
+    final consented = await ensureAiDataConsent(context);
+    if (!consented || !mounted) return;
     final ok = await openMeetingVoiceRecordScreen(context);
     if (!mounted) return;
     if (ok) {
@@ -64,6 +67,8 @@ class _MeetingHubScreenState extends State<MeetingHubScreen> {
 
   Future<void> _uploadAudio() async {
     if (_uploadingAudio) return;
+    final consented = await ensureAiDataConsent(context);
+    if (!consented || !mounted) return;
     final picked = await pickFiles(maxCount: 1);
     if (!mounted || picked.isEmpty) return;
     final file = picked.first;

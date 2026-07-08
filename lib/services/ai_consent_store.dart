@@ -1,10 +1,13 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../legal/ai_third_party_disclosure.dart';
+
 /// 用户是否已同意将数据发送至第三方 AI 服务。
 class AiConsentStore {
   AiConsentStore._();
 
-  static const _prefsKey = 'mirror_ai_third_party_consent_v1';
+  static const _prefsKey =
+      'mirror_ai_third_party_consent_v$kAiThirdPartyConsentVersion';
 
   static Future<bool> hasConsented() async {
     final p = await SharedPreferences.getInstance();

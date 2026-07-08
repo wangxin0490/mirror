@@ -7,6 +7,7 @@ import '../theme/mirror_colors.dart';
 import '../theme/mirror_theme.dart';
 import '../utils/toolbox_agent_icon.dart';
 import '../widgets/agent_thinking_bubble.dart';
+import '../widgets/ai_data_consent_dialog.dart';
 import '../widgets/ai_generated_content_label.dart';
 import '../widgets/mirror_pressable.dart';
 import '../widgets/phone_components.dart';
@@ -353,6 +354,8 @@ class _ProductAgentChatScreenState extends State<ProductAgentChatScreen> {
   Future<void> _send() async {
     final text = _input.text.trim();
     if (text.isEmpty || _sending) return;
+    final consented = await ensureAiDataConsent(context);
+    if (!consented || !mounted) return;
     setState(() {
       _sending = true;
       _messages = [

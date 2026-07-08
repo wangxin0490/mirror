@@ -672,6 +672,8 @@ class _ChatScreenState extends State<ChatScreen> {
       _toast('语音识别服务未开启');
       return;
     }
+    final consented = await ensureAiDataConsent(context);
+    if (!consented || !mounted) return;
     try {
       await _voiceInput.holdStart();
     } catch (_) {
@@ -2042,15 +2044,22 @@ class _SessionsScreenState extends State<SessionsScreen> {
       _toast('该会话暂无法删除');
       return;
     }
+    final name = t.name.trim().isEmpty ? '该联系人' : t.name.trim();
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: MirrorColors.bgApp,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          '删除对话',
-          style: MirrorTheme.sans(fontSize: 16, weight: FontWeight.w600),
+          '删除联系人',
+          style: MirrorTheme.sans(
+            fontSize: 16,
+            weight: FontWeight.w600,
+            color: MirrorColors.text,
+          ),
         ),
         content: Text(
-          '确定删除与「${t.name}」的聊天记录？删除后无法恢复。',
+          '确定删除与「$name」的聊天记录？删除后无法恢复。',
           style: MirrorTheme.sans(
             fontSize: 14,
             color: MirrorColors.text2,
@@ -2060,13 +2069,17 @@ class _SessionsScreenState extends State<SessionsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+            child: Text(
+              '取消',
+              style: MirrorTheme.sans(fontSize: 14, color: MirrorColors.text2),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
               '删除',
               style: MirrorTheme.sans(
+                fontSize: 14,
                 color: MirrorColors.coral,
                 weight: FontWeight.w600,
               ),

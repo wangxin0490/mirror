@@ -2136,6 +2136,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
     if (u.canFollow) {
       res = await ContactsApi.follow(u.userId);
     } else if (u.followState == 'following' || u.followState == 'mutual') {
+      final ok = await _confirmUnfollow(u);
+      if (ok != true) return;
       res = await ContactsApi.unfollow(u.userId);
     } else {
       return;
@@ -2148,9 +2150,57 @@ class _ContactsScreenState extends State<ContactsScreen> {
     setState(() {
       _users[index] = u.copyWith(
         followState: result.followState,
-        followButtonLabel: result.followButtonLabel,
+        followButtonLabel: result.resolvedFollowButtonLabel,
       );
     });
+  }
+
+  Future<bool> _confirmUnfollow(ContactUserCard u) async {
+    final name = u.displayName.trim().isEmpty ? '该联系人' : u.displayName.trim();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: MirrorColors.bgApp,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          '删除联系人',
+          style: MirrorTheme.sans(
+            fontSize: 16,
+            weight: FontWeight.w600,
+            color: MirrorColors.text,
+          ),
+        ),
+        content: Text(
+          '确定将「$name」从关注列表移除？',
+          style: MirrorTheme.sans(
+            fontSize: 14,
+            color: MirrorColors.text2,
+            height: 1.45,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              '取消',
+              style: MirrorTheme.sans(fontSize: 14, color: MirrorColors.text2),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              '删除',
+              style: MirrorTheme.sans(
+                fontSize: 14,
+                color: MirrorColors.coral,
+                weight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    return ok == true;
   }
 
   Future<void> _showAddUser() async {
@@ -2452,7 +2502,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
-                u.followButtonLabel,
+                u.resolvedFollowButtonLabel,
                 style: MirrorTheme.sans(
                   fontSize: 11.5,
                   weight: FontWeight.w500,
