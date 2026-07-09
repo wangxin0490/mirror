@@ -1428,7 +1428,6 @@ class MeScreen extends StatefulWidget {
     this.onEditProfile,
     this.onComposeTap,
     this.onAgentsList,
-    this.onQuotaTap,
     this.onAgentTap,
     this.onLogout,
     this.onAccountSettings,
@@ -1440,7 +1439,6 @@ class MeScreen extends StatefulWidget {
   final ValueChanged<MeProfile>? onEditProfile;
   final VoidCallback? onComposeTap;
   final VoidCallback? onAgentsList;
-  final void Function(MeQuota quota, List<SkillData> skills)? onQuotaTap;
   final ValueChanged<ToolboxAgentItem>? onAgentTap;
   final VoidCallback? onLogout;
   final VoidCallback? onAccountSettings;
@@ -1646,32 +1644,6 @@ class _MeScreenState extends State<MeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (!ReviewFlags.hideBilling)
-                      _quotaBox(
-                        _data!.quota,
-                        onTap: widget.onQuotaTap == null
-                            ? null
-                            : () => widget.onQuotaTap!(
-                                _data!.quota,
-                                _toolboxAsSkills(_toolbox),
-                              ),
-                      )
-                    else if (widget.onQuotaTap != null)
-                      Container(
-                        key: const Key('me-token-usage-entry'),
-                        margin: const EdgeInsets.only(bottom: 4),
-                        child: _listSection([
-                          _meRow(
-                            icon: Icons.pie_chart_outline,
-                            label: 'Token 使用明细',
-                            sub: '按工具箱各技能独立统计',
-                            onTap: () => widget.onQuotaTap!(
-                              _data!.quota,
-                              _toolboxAsSkills(_toolbox),
-                            ),
-                          ),
-                        ]),
-                      ),
                     const SectionLabel('我的工具箱 · TOOLBOX'),
                     _toolboxSection(),
                     if (widget.onAccountSettings != null) ...[

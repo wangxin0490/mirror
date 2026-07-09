@@ -642,14 +642,6 @@ class _MirrorPrototypeState extends State<MirrorPrototype> {
           },
           onComposeTap: () => _push(PrototypeRoute.compose),
           onAgentsList: () => _push(PrototypeRoute.agentsList),
-          onQuotaTap: (quota, skills) {
-            setState(() {
-              _tokenQuota = quota;
-              _tokenSkills = skills;
-              _navDirection = _NavDirection.forward;
-              _stack.add(PrototypeRoute.tokenUsage);
-            });
-          },
           onAgentTap: _openToolboxAgent,
           onLogout: _logout,
           onAccountSettings: () => _push(PrototypeRoute.accountSettings),
