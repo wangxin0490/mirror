@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../api/me_api.dart';
-import '../config/review_flags.dart';
 import '../models/me_models.dart';
 import '../theme/mirror_colors.dart';
 import '../theme/mirror_theme.dart';
@@ -49,9 +48,9 @@ class _TokenUsageDetailScreenState extends State<TokenUsageDetailScreen> {
     });
   }
 
-  bool get _walletMode => _quota.isWalletMode && !ReviewFlags.hideBilling;
+  bool get _walletMode => false;
 
-  bool get _showSummaryCard => !ReviewFlags.hideBilling || !_quota.isWalletMode;
+  bool get _showSummaryCard => !_quota.isWalletMode;
 
   List<SkillData> get _visibleSkills {
     final skills = _skills.where((s) {
