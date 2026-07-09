@@ -1242,9 +1242,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   String _quotaMessage(String? lockReason) => switch (lockReason) {
-    'trial_exhausted' => '体验额度已用完，购买 Token 后可继续对话',
-    'balance_exhausted' => '该模型 Token 已用完，请充值',
-    'not_purchased' => '请购买该模型 Token 包',
+    'trial_exhausted' => '体验额度已用完，请稍后再试或换一个模型',
+    'balance_exhausted' => '该模型暂时无法继续，请稍后再试或换一个模型',
+    'not_purchased' => '该模型暂时不可用，请换一个模型试试',
     _ => '当前模型不可用',
   };
 

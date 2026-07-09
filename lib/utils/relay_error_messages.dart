@@ -40,7 +40,7 @@ class RelayErrorMessages {
       'insufficient_user', 'insufficient_quota', 'quota exceeded',
       'exceeded your current quota', '余额不足', '额度不足',
     ])) {
-      return '${userErrorPrefix}这个模型的可用次数已用完，请充值或换一个模型试试。';
+      return '${userErrorPrefix}暂时无法继续，请稍后再试或换一个模型试试。';
     }
     if (_containsAny(lower, ['rate limit', 'too many requests', '请求过于频繁'])) {
       return '${userErrorPrefix}你发送得太快了，稍等一会儿再试。';
@@ -78,7 +78,7 @@ class RelayErrorMessages {
         40900 => '${userErrorPrefix}上一条回复仍在生成中，请稍后再试。',
         400 => '${userErrorPrefix}这条消息好像有点问题，请改一改再发。',
         401 => '${userErrorPrefix}暂时无法回复，请稍后再试，或换一个模型试试。',
-        402 => '${userErrorPrefix}这个模型的可用次数已用完，请充值或换一个模型试试。',
+        402 => '${userErrorPrefix}暂时无法继续，请稍后再试或换一个模型试试。',
         403 => '${userErrorPrefix}你暂时还不能使用这个模型，请联系客服了解详情。',
         404 => '${userErrorPrefix}找不到这个模型了，请换一个试试。',
         408 => '${userErrorPrefix}等了一会儿还没收到回复，请再试一次。',
