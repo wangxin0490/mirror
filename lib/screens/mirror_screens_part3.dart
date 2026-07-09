@@ -943,53 +943,10 @@ class _MemoryScreenState extends State<MemoryScreen> {
 }
 
 // ─── S13 Routing ───────────────────────────────────────────────
-class RoutingScreen extends StatefulWidget {
+class RoutingScreen extends StatelessWidget {
   const RoutingScreen({super.key, this.onBack});
 
   final VoidCallback? onBack;
-
-  @override
-  State<RoutingScreen> createState() => _RoutingScreenState();
-}
-
-class _RoutingScreenState extends State<RoutingScreen> {
-  List<RoutingUsageData> _usage = _fallbackUsage();
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  static List<RoutingUsageData> _fallbackUsage() => [
-    RoutingUsageData(
-      icon: 'A',
-      name: 'claude-4-opus',
-      purpose: '推理 · 代码',
-      cost: r'$ 12.40',
-      green: false,
-    ),
-    RoutingUsageData(
-      icon: 'O',
-      name: 'gpt-4o',
-      purpose: '视觉 · 通用',
-      cost: r'$ 6.20',
-      green: false,
-    ),
-    RoutingUsageData(
-      icon: 'L',
-      name: 'llama-3.3 · local',
-      purpose: '闲聊 · 草稿',
-      cost: 'free',
-      green: true,
-    ),
-  ];
-
-  Future<void> _load() async {
-    final list = await MeApi.fetchRoutingUsage();
-    if (!mounted || list.isEmpty) return;
-    setState(() => _usage = list);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -999,7 +956,7 @@ class _RoutingScreenState extends State<RoutingScreen> {
           title: ' Routing',
           accentPart: '模型',
           actions: const [Icons.settings_outlined],
-          onBack: widget.onBack,
+          onBack: onBack,
         ),
         Expanded(
           child: ListView(
@@ -1016,31 +973,29 @@ class _RoutingScreenState extends State<RoutingScreen> {
                   painter: _RoutingLinesPainter(),
                   child: Stack(
                     children: [
-                      _node('推理 · Reasoning', true, 14, 14),
-                      _node('代码 · Code', true, 14, 60),
-                      _node('长文本 · Long-ctx', true, 14, 106),
-                      _node('图像 · Vision', true, 14, 152),
-                      _node('闲聊 · Casual', true, 14, 198),
-                      _node('claude-4-opus', false, 14, 14),
-                      _node('gpt-4o', false, 14, 60),
-                      _node('gemini-2.5', false, 14, 106),
-                      _node('qwen3-vl', false, 14, 152),
-                      _node('llama · local', false, 14, 198, green: true),
+                      _routingNode('推理 · Reasoning', true, 14, 14),
+                      _routingNode('代码 · Code', true, 14, 60),
+                      _routingNode('长文本 · Long-ctx', true, 14, 106),
+                      _routingNode('图像 · Vision', true, 14, 152),
+                      _routingNode('闲聊 · Casual', true, 14, 198),
+                      _routingNode('claude-4-opus', false, 14, 14),
+                      _routingNode('gpt-4o', false, 14, 60),
+                      _routingNode('gemini-2.5', false, 14, 106),
+                      _routingNode('qwen3-vl', false, 14, 152),
+                      _routingNode('llama · local', false, 14, 198, green: true),
                     ],
                   ),
                 ),
               ),
-              const SectionLabel('本月用量 · USAGE'),
-              for (final u in _usage)
-                _modelRow(u.icon, u.name, u.purpose, u.cost, green: u.green),
             ],
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _node(
+Widget _routingNode(
     String t,
     bool task,
     double left,
@@ -1088,71 +1043,6 @@ class _RoutingScreenState extends State<RoutingScreen> {
       ),
     ),
   );
-
-  Widget _modelRow(
-    String icon,
-    String nm,
-    String p,
-    String cost, {
-    bool green = false,
-  }) => Container(
-    margin: const EdgeInsets.only(bottom: 8),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-    decoration: BoxDecoration(
-      border: Border.all(color: MirrorColors.border),
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: Row(
-      children: [
-        Container(
-          width: 30,
-          height: 30,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: green ? MirrorColors.greenSoft : MirrorColors.accentSoft,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            icon,
-            style: MirrorTheme.sans(
-              fontSize: 13,
-              weight: MirrorFontWeight.medium,
-              color: green ? MirrorColors.greenText : MirrorColors.accentDeep,
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                nm,
-                style: MirrorTheme.sans(
-                  fontSize: 12.5,
-                  weight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                p,
-                style: MirrorTheme.mono(fontSize: 10.5, letterSpacing: 0),
-              ),
-            ],
-          ),
-        ),
-        Text(
-          cost,
-          style: MirrorTheme.mono(
-            fontSize: 10,
-            color: MirrorColors.green,
-            weight: FontWeight.w500,
-            letterSpacing: 0,
-          ),
-        ),
-      ],
-    ),
-  );
-}
 
 class _RoutingLinesPainter extends CustomPainter {
   @override

@@ -118,7 +118,7 @@ class GalleryPage extends StatelessWidget {
         _item(
           PhoneFrame(useHtmlDimensions: true, time: '9:46', child: const RoutingScreen()),
           '13 / 15', 'Routing', '模型路由',
-          '"任务 → 模型"路由图 + 本月用量与成本',
+          '"任务 → 模型"路由图',
         ),
         _item(
           PhoneFrame(useHtmlDimensions: true, time: '9:47', child: const CronScreen()),
@@ -128,7 +128,7 @@ class GalleryPage extends StatelessWidget {
         _item(
           PhoneFrame(useHtmlDimensions: true, time: '9:47', child: const MeScreen()),
           '15 / 15', 'Account', '我的',
-          '个人资料、Token 配额、Agent 心智入口与渠道绑定',
+          '个人资料、Agent 心智入口与渠道绑定',
         ),
       ];
 
