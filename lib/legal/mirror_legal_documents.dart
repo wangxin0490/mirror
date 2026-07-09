@@ -12,7 +12,7 @@ extension MirrorLegalDocumentMeta on MirrorLegalDocument {
         MirrorLegalDocument.privacyPolicy => '隐私政策',
       };
 
-  String get updatedAt => '2026年7月8日';
+  String get updatedAt => '2026年7月9日';
 
   List<({String heading, String body})> get sections => switch (this) {
         MirrorLegalDocument.userAgreement => _userAgreementSections,
@@ -170,6 +170,6 @@ const _privacyPolicySectionsAfterSharing = [
     body:
         '个人信息保护负责人/联系邮箱：$_contactEmail\n'
         '运营者：$_operatorName\n'
-        '更新日期：2026年7月8日',
+        '更新日期：2026年7月9日',
   ),
 ];

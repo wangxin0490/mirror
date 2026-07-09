@@ -90,6 +90,13 @@ class AiDataConsentDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
+            Text('收集方式：', style: MirrorTheme.sans(fontSize: 13, weight: FontWeight.w600)),
+            const SizedBox(height: 6),
+            Text(
+              '仅在您主动输入、上传、录制或选择发送时收集并发送上述数据。',
+              style: MirrorTheme.sans(fontSize: 13, height: 1.45, color: MirrorColors.text2),
+            ),
+            const SizedBox(height: 12),
             Text(
               '点击「同意并继续」即表示您明确同意我们将上述数据发送至所列第三方 AI 服务提供商。'
               '您可随时停止使用相关功能；完整说明见《隐私政策》。',

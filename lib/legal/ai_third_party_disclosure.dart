@@ -13,7 +13,7 @@ class AiThirdPartyProvider {
 }
 
 /// 同意记录版本；服务商名单或披露文案变更时递增，以触发重新授权。
-const kAiThirdPartyConsentVersion = 2;
+const kAiThirdPartyConsentVersion = 3;
 
 /// 当前可能接收用户数据的第三方 AI 服务商（随模型路由可能选用其一或多个）。
 const kAiThirdPartyProviders = [
@@ -43,7 +43,7 @@ const kAiThirdPartyProviders = [
 String aiThirdPartyConsentLeadSentence() {
   final names = kAiThirdPartyProviders.map((p) => p.companyName).join('、');
   return '使用 AI 对话、知识库问答、语音输入、会议录音与纪要等功能时，'
-      '您的数据将被发送至以下第三方 AI 服务提供商：$names。'
+      '您主动输入、上传、录制或发送的内容将被发送至以下第三方 AI 服务提供商：$names。'
       '具体由您所选模型或功能决定实际接收方。';
 }
 
