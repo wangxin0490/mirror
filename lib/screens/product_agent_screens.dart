@@ -110,24 +110,12 @@ class _AgentsListScreenState extends State<AgentsListScreen> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    a.displayName,
-                    style: MirrorTheme.sans(
-                      fontSize: 13.5,
-                      weight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    a.usageSubtitle,
-                    style: MirrorTheme.mono(
-                      fontSize: 10,
-                      color: MirrorColors.text3,
-                    ),
-                  ),
-                ],
+              child: Text(
+                a.displayName,
+                style: MirrorTheme.sans(
+                  fontSize: 13.5,
+                  weight: FontWeight.w500,
+                ),
               ),
             ),
             const Icon(Icons.chevron_right,

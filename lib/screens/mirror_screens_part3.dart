@@ -4,7 +4,6 @@ import '../api/meeting_api.dart';
 import '../api/me_api.dart';
 import '../api/product_agent_api.dart';
 import '../config/api_config.dart';
-import '../config/review_flags.dart';
 import '../models/feed_models.dart';
 import '../models/meeting_models.dart';
 import '../models/me_models.dart';
@@ -2039,40 +2038,18 @@ class _MeScreenState extends State<MeScreen> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  s.displayName,
-                  style: MirrorTheme.sans(
-                    fontSize: 13.5,
-                    weight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  s.usageSubtitle,
-                  style: MirrorTheme.mono(
-                    fontSize: 10,
-                    color: MirrorColors.text3,
-                    letterSpacing: 0,
-                  ),
-                ),
-              ],
+            child: Text(
+              s.displayName,
+              style: MirrorTheme.sans(
+                fontSize: 13.5,
+                weight: FontWeight.w500,
+              ),
             ),
           ),
           if (!s.enabled)
             Text(
               '已停用',
               style: MirrorTheme.mono(fontSize: 9, color: MirrorColors.text3),
-            )
-          else if (!ReviewFlags.hideBilling)
-            Text(
-              s.usageTrailing,
-              style: MirrorTheme.mono(
-                fontSize: 11,
-                color: MirrorColors.accent,
-                weight: FontWeight.w500,
-              ),
             ),
           const SizedBox(width: 4),
           const Icon(Icons.chevron_right, size: 16, color: MirrorColors.text3),

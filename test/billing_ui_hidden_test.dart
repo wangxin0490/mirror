@@ -34,4 +34,29 @@ void main() {
     expect(find.textContaining('账户余额'), findsNothing);
     expect(find.byKey(const Key('me-token-usage-entry')), findsNothing);
   });
+
+  testWidgets('MeScreen toolbox rows do not show token usage numbers',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await ApiConfig.saveSession(
+      token: 't',
+      userId: 1,
+      displayName: '测试用户',
+      handle: 'test',
+      avatarLetter: '测',
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: MeScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.textContaining('tokens'), findsNothing);
+    expect(find.textContaining('TOKEN'), findsNothing);
+  });
 }
