@@ -140,10 +140,17 @@ Widget _modelRow({
 }
 
 /// 仅锁定模型展示原因；试用/已购标签暂不展示。
+/// 服务端若返回购买/充值类文案，统一改为中性「暂不可用」（App Store 3.1.1）。
 String? _modelSubtitle(AgentModelItem model) {
   if (model.selectable) return null;
   final label = model.accessLabel.trim();
   if (label.isEmpty) return '不可用';
+  if (label.contains('购买') ||
+      label.contains('充值') ||
+      label.contains('Token') ||
+      label.contains('token')) {
+    return '暂不可用';
+  }
   return label;
 }
 

@@ -156,8 +156,8 @@ abstract final class MirrorFeedData {
     FeedCardData(
       cover: FeedCover.h8,
       icon: Icons.route_outlined,
-      subtitle: '成本 -60%',
-      title: '多模型路由落地：按任务拆分后的 Token 账单对比',
+      subtitle: '效率提升',
+      title: '多模型路由落地：按任务拆分后的效果对比',
       av: '李',
       avVariant: FeedAvatarVariant.green,
       authorKey: 'libo',
@@ -326,7 +326,7 @@ abstract final class MirrorFeedData {
     FeedCardData(
       cover: FeedCover.h4,
       subtitle: '工具箱',
-      title: '我常用的 4 个技能与 Token 用量复盘',
+      title: '我常用的 4 个技能使用复盘',
       av: '我',
       avVariant: FeedAvatarVariant.accent,
       authorKey: 'me',

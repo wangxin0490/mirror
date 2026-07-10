@@ -270,7 +270,7 @@ class _ChatScreenState extends State<ChatScreen> {
       modelCode: 'gemini-2.5',
       displayName: 'gemini-2.5',
       accessMode: 'locked',
-      accessLabel: '需购买',
+      accessLabel: '暂不可用',
       selectable: false,
       lockReason: 'not_purchased',
     ),

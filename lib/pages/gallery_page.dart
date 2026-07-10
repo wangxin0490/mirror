@@ -233,7 +233,7 @@ class _MetaGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final cells = [
       ('通讯入口', '1', ' · 人 / AI'),
-      ('付费形式', '买断 · ', '订阅'),
+      ('产品形态', '工具 · ', '对话'),
       ('设计语言', 'Quiet ', 'Calm'),
       ('屏幕数', '15', ' screens'),
     ];
