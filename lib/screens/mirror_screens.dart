@@ -13,6 +13,7 @@ import '../services/chat_stream_handle.dart';
 import '../theme/mirror_colors.dart';
 import '../theme/mirror_theme.dart';
 import '../utils/agent_model.dart';
+import '../utils/model_access_copy.dart';
 import '../utils/relay_error_messages.dart';
 import '../utils/agent_chat_copy.dart';
 import '../widgets/mirror_assistant_identity.dart';
@@ -879,7 +880,10 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!mounted) return;
     if (!r.ok) {
       _toast(
-        r.message.isNotEmpty ? r.message : _quotaMessage(picked.lockReason),
+        sanitizeModelAccessServerMessage(
+          r.message,
+          lockReason: picked.lockReason,
+        ),
       );
       return;
     }
@@ -1240,12 +1244,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  String _quotaMessage(String? lockReason) => switch (lockReason) {
-    'trial_exhausted' => '体验额度已用完，请稍后再试或换一个模型',
-    'balance_exhausted' => '该模型暂时无法继续，请稍后再试或换一个模型',
-    'not_purchased' => '该模型暂时不可用，请换一个模型试试',
-    _ => '当前模型不可用',
-  };
+  String _quotaMessage(String? lockReason) => modelLockToastMessage(lockReason);
 
   Future<void> _send({String? voiceText}) async {
     if (widget.previewMode || _sending || _uploading) return;

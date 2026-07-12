@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/agent_models.dart';
 import '../theme/mirror_colors.dart';
 import '../theme/mirror_theme.dart';
+import '../utils/model_access_copy.dart';
 import 'mirror_pressable.dart';
 
 /// App 风格模型选择 BottomSheet（上拉/下拉关闭）。
@@ -139,20 +140,11 @@ Widget _modelRow({
   );
 }
 
-/// 仅锁定模型展示原因；试用/已购标签暂不展示。
-/// 服务端若返回购买/充值类文案，统一改为中性「暂不可用」（App Store 3.1.1）。
-String? _modelSubtitle(AgentModelItem model) {
-  if (model.selectable) return null;
-  final label = model.accessLabel.trim();
-  if (label.isEmpty) return '不可用';
-  if (label.contains('购买') ||
-      label.contains('充值') ||
-      label.contains('Token') ||
-      label.contains('token')) {
-    return '暂不可用';
-  }
-  return label;
-}
+/// 仅锁定模型展示原因；试用/已购及服务端计费文案均不展示（App Store 3.1.1）。
+String? _modelSubtitle(AgentModelItem model) => modelLockedSubtitle(
+      selectable: model.selectable,
+      accessLabel: model.accessLabel,
+    );
 
 Widget _modelCapabilityIcons(AgentModelItem model) {
   return _capabilityIcon(

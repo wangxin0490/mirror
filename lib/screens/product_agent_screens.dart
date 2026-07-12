@@ -5,6 +5,7 @@ import '../models/toolbox_agent_models.dart';
 import '../services/product_agent_sse_client.dart';
 import '../theme/mirror_colors.dart';
 import '../theme/mirror_theme.dart';
+import '../utils/model_access_copy.dart';
 import '../utils/toolbox_agent_icon.dart';
 import '../widgets/agent_thinking_bubble.dart';
 import '../widgets/ai_data_consent_dialog.dart';
@@ -13,15 +14,8 @@ import '../widgets/mirror_pressable.dart';
 import '../widgets/phone_components.dart';
 
 /// 工具箱智能体不可用时的提示文案。
-String toolboxAgentDisabledMessage(ToolboxAgentItem agent) {
-  if (agent.isModelUnavailable) {
-    final model = agent.requiredModel.isNotEmpty
-        ? agent.requiredModel
-        : agent.defaultModel;
-    return model.isNotEmpty ? '暂无 $model 模型权限，请联系管理员' : '该工具暂不可用';
-  }
-  return '该工具暂不可用';
-}
+String toolboxAgentDisabledMessage(ToolboxAgentItem agent) =>
+    kToolboxUnavailableMessage;
 
 bool toolboxAgentUsesMeetingHub(ToolboxAgentItem agent) =>
     agent.hubScreen == 'meeting' || agent.agentCode == 'meeting-minutes';
